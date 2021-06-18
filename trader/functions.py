@@ -1,0 +1,150 @@
+from sklearn.model_selection import train_test_split
+from datetime import timedelta, time
+from .models import Algorithm, Stock, DecisionHistory
+from django.utils import timezone
+from sklearn import linear_model
+import scipy.stats as scpy
+import yfinance as yf
+import pandas as pd
+import requests, re
+import numpy as np
+
+
+def valid_ticker(symbol):
+    url = 'https://finance.yahoo.com/quote/' + symbol.upper()
+    response = requests.get(url).content.decode('utf-8')
+    ticker = re.search('Previous Close', response)
+    return False if ticker.start() > 200000 else True
+
+def today_trade():
+    weekday = timezone.now().weekday()
+    currTime = timezone.now().time()
+    if weekday == 5:
+        lastDate = (timezone.now() - timedelta(days=1)).date()
+    elif weekday == 6:
+        lastDate = (timezone.now() - timedelta(days=2)).date()
+    else:
+        if currTime > time(9,30,0):
+            lastDate = timezone.now().date()
+        else:
+            lastDate = (timezone.now() - timedelta(days=1)).date()
+    if lastDate not in [x.tradeDate.date() for x in DecisionHistory.objects.all()]:
+        symbols = [x.ticker for x in Stock.objects.all()]
+        data = get_data(symbols)
+        ticker, open, conf, tradeDate = get_pick(data, symbols)
+        stock = Stock.objects.get(ticker=ticker)
+        algo = Algorithm.objects.get(pk=1)
+        DecisionHistory.objects.create(stock=stock,algorithm=algo,openPrice=open,confidence=conf, tradeDate=tradeDate)
+        get_closing()
+
+def get_data(symbols):
+    data = yf.download(symbols, period = "1y",interval = '1d' )
+    for symbol in symbols:
+        data['pHigh',symbol] = data['High',symbol].shift(1)
+        data['pLow',symbol] = data['Low',symbol].shift(1)
+        data['pClose',symbol] = data['Close',symbol].shift(1)
+        data['pVolume',symbol] = data['Volume',symbol].shift(1)
+        data = data.iloc[1:]
+        data = data.fillna(0)
+    return data
+
+def get_pick(data, symbols, i='default'):
+    opens = []
+    closes = []
+    decisions = []
+    
+    for symbol in symbols:
+        
+        if i != 'default':
+            x=i+1
+            y=i+64
+            z=i+65
+        else:
+            x=0
+            y=-2
+            z=-1
+        #features = ['Open','pHigh','pLow','pClose','pVolume']
+        #symbolz = [x for symbol in features]
+        #X = data[features, symbolz][i+1:i+64]
+        X = data['Open', symbol][x:y].to_numpy().reshape(-1,1)
+        y = data['Close',symbol][x:y]
+            
+        #Split data into train and test
+        train_X, val_X, train_y, val_y = train_test_split(X, y)
+        
+        #Create model and predictions
+        model = linear_model.LinearRegression()
+        model.fit(train_X, train_y)
+        preds_val = model.predict(val_X)
+            
+        #Compute stock 95% confidence interval
+        l1 = preds_val - val_y
+        mean = np.average(l1)
+        stdev = np.std(l1)
+        predict = data['Open',symbol][z].reshape(1,-1)
+        pred_increase = model.predict(predict)- data['Open',symbol][z]
+
+        #Compute long/short with confidence 
+        zscore = 3
+        while True:
+            lowf = mean - zscore*stdev + pred_increase
+            highf = mean + zscore*stdev + pred_increase
+                
+            if lowf > 0 and highf > 0:
+                prob = scpy.norm.sf(abs(zscore))*2
+                prob = 1 - prob
+                decision = round(prob*100,2)
+                break
+                
+            elif lowf < 0 and highf < 0:
+                prob = scpy.norm.sf(abs(zscore))*2
+                prob = 1 - prob
+                decision = round(prob*100,2) *-1
+                break 
+                
+            else:
+                zscore -= .001
+
+        #Add data to lists
+        opens.append(data['Open',symbol][z])
+        closes.append(data['Close',symbol][z])
+        decisions.append(decision)
+        
+    #Turn lists into a Dataframe 
+    df = pd.DataFrame({'ticker': symbols,'date': data.index[z],'open': opens,'decision': decisions,'close':closes})
+    df_sorted = df.sort_values(by=['decision']).reset_index()
+    long = df_sorted['ticker'][len(df_sorted)-1]
+    #longs = [df_sorted['date'][len(df_sorted)-1],df_sorted['ticker'][len(df_sorted)-1],df_sorted['open'][len(df_sorted)-1],df_sorted['decision'][len(df_sorted)-1],df_sorted['close'][len(df_sorted)-1]]
+    pricel = df_sorted['open'][len(df_sorted)-1]
+    decisionl = df_sorted['decision'][len(df_sorted)-1]
+    return long, pricel, decisionl, data.index[z]
+
+def get_closing():
+    stocks = DecisionHistory.objects.filter(closingPrice=None)
+    for stock in stocks:
+        ticker = stock.stock.ticker
+        tickDate = stock.tradeDate
+        endDate = stock.tradeDate + timedelta(days=1)
+        result = yf.Ticker(ticker).history(start=tickDate.date(), end=endDate.date())
+        closing = result["Close"].iloc[0]
+        setattr(stock, "closingPrice", closing)
+        stock.save()
+
+
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
+
+def daily_email(request):
+    subject, from_email, to = 'hello', 'from@example.com', 'to@example.com'
+    text= get_template('email/email.txt')
+    html = get_template('email/email.html')
+
+    d = { 'username': request.user, 'stock': DecisionHistory.objects.latest('pk'), 'stocks': DecisionHistory.objects.all() }
+
+    text_content = text.render(d)
+    html_content = html.render(d)
+
+    msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+    msg.attach_alternative(html_content, "text/html")
+    msg.send()
+

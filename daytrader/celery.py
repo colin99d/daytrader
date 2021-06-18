@@ -19,6 +19,7 @@ app.autodiscover_tasks()
 def debug_task(self):
     print('Request: {0!r}'.format(self.request))
 
+
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     # Calls test('hello') every 10 seconds.
