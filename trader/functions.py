@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from sklearn.model_selection import train_test_split
 from datetime import timedelta, time
 from django.utils import timezone
@@ -132,8 +133,6 @@ def get_closing():
         stock.save()
 
 
-
-
 def daily_email(request):
     from django.core.mail import EmailMultiAlternatives
     from django.template.loader import get_template
@@ -142,7 +141,17 @@ def daily_email(request):
     text= get_template('email/email.txt')
     html = get_template('email/email.html')
 
-    d = { 'username': request.user, 'stock': DecisionHistory.objects.latest('pk'), 'stocks': DecisionHistory.objects.all() }
+    try:
+        stock = DecisionHistory.objects.latest('pk')
+    except ObjectDoesNotExist:
+        stock = None
+
+    try:
+        stocks = DecisionHistory.objects.all()
+    except ObjectDoesNotExist:
+        stocks = None
+
+    d = { 'username': request.user, 'stock': stock, 'stocks': stocks}
 
     text_content = text.render(d)
     html_content = html.render(d)
