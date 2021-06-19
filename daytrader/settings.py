@@ -139,14 +139,15 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'America/Indiana/Indianapolis' # Your timezone
 
 # https://sendgrid.com/docs/for-developers/sending-email/django/
-"""
 EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_HOST_USER = "apikey"
-EMAIL_HOST_PASSWORD = "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"
+EMAIL_HOST_PASSWORD = "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"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = "cdelahun@iu.edu"
+
+
 """
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = "127.0.0.1"
 EMAIL_PORT = 1025
+"""

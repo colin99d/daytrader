@@ -1,1 +1,8 @@
-Hello {{ username }} - your account is activated.
+Hello {{ username }},
+
+Today's stock pick is {{stock.stock.ticker}}. You should buy this stock immediately and sell at close tonight. 
+We are {{stock.confidence}}% confident that this stock will increase in price. Below is an outline of our recent picks.
+
+Sincerely,
+
+Trading Team

@@ -1,27 +1,42 @@
+{% load filter %}
+
 <p>Hello {{ username }},</p>
 
 <p>Today's stock pick is {{stock.stock.ticker}}. You should buy this stock immediately and sell at close tonight. 
-We are {{stock.confidence}}% confident that our stock will increase in price. Below is an outline of our recent picks.</p>
+We are {{stock.confidence}}% confident that this stock will increase in price. Below is an outline of our recent picks.</p>
 
-<table class="table-auto">
+<table style="font-family: Arial, Helvetica, sans-serif; border-collapse: collapse; width: 100%;">
     <tr>
-        <th>Stock</th>
-        <th>Date</th>
-        <th>Open</th>
-        <th>Close</th>
+        <th style="border: 1px solid #ddd; padding: 8px; color: white; background-color: #04AA6D; text-align: left; padding-bottom: 12px; padding-top: 12px;">Stock</th>
+        <th style="border: 1px solid #ddd; padding: 8px; color: white; background-color: #04AA6D; text-align: left; padding-bottom: 12px; padding-top: 12px;">Date</th>
+        <th style="border: 1px solid #ddd; padding: 8px; color: white; background-color: #04AA6D; text-align: left; padding-bottom: 12px; padding-top: 12px;">Open</th>
+        <th style="border: 1px solid #ddd; padding: 8px; color: white; background-color: #04AA6D; text-align: left; padding-bottom: 12px; padding-top: 12px;">Close</th>
+        <th style="border: 1px solid #ddd; padding: 8px; color: white; background-color: #04AA6D; text-align: left; padding-bottom: 12px; padding-top: 12px;">Gain</th>
     </tr>
     {% for item in stocks %}
-    <tr class="bg-emerald-200">
-        <td>{{item.stock.ticker}}</td>
-        <td>{{item.tradeDate}}</td>
-        <td>{{item.openPrice}}</td>
-        <td>{{item.closingPrice}}</td>
-    </tr>
+    {% if forloop.counter|divisibleby:2 %}
+        <tr style="background-color: #f2f2f2; color:black">
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.stock.ticker}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.tradeDate | date:"m/d/y"}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.openPrice | floatformat:3}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.closingPrice | floatformat:3}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.openPrice | growth:item.closingPrice}}</td>
+        </tr>
+    {% else %}
+        <tr style="background-color: #ECECEC; color:black">
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.stock.ticker}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.tradeDate | date:"m/d/y"}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.openPrice | floatformat:3}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.closingPrice | floatformat:3}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.openPrice | growth:item.closingPrice}}</td>
+        </tr>
+    {% endif %}
+
     {% endfor %}
 
 </table>
 
 <p>Sincerely,</p>
 
-<p>daytrader.com</p>
+<p>Trading Team</p>
 

@@ -1,7 +1,8 @@
-from django.shortcuts import render
-from .functions import valid_ticker, daily_email
-from .forms import StockForm
 from .models import DecisionHistory, Stock
+from django.shortcuts import render
+from .functions import valid_ticker
+from .forms import StockForm
+
 
 # Create your views here.
 def home(request):
@@ -28,8 +29,6 @@ def home(request):
     context = {"stocks": Stock.objects.all(), "form": form}
     if error:
         context["error"] = error
-
-    daily_email(request)
     return render(request, 'home.html', context)
 
 def table(request):

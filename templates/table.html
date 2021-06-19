@@ -27,7 +27,7 @@
                                 <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{stock.stock.ticker}}</td>
                                 <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">${{stock.openPrice | floatformat:3}}</td>
                                 <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">${{stock.closingPrice | floatformat:3}}</td>
-                                <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{stock.openPrice | growth:stock.closingPrice}}</td>
+                                <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm {% if stock.openPrice > stock.closingPrice %}text-green-500{% else %}text-red-500{% endif %}">{{stock.openPrice | growth:stock.closingPrice}}</td>
                                 <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{stock.confidence}}%</td>
                             </tr>
                         {% endfor %}

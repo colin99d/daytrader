@@ -1,5 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from sklearn.model_selection import train_test_split
+from django.template.loader import get_template
+from django.core.mail import send_mail
 from datetime import timedelta, time
 from django.utils import timezone
 from sklearn import linear_model
@@ -136,11 +138,9 @@ def get_closing():
         stock.save()
 
 
-def daily_email(request):
-    from django.core.mail import EmailMultiAlternatives
-    from django.template.loader import get_template
+def daily_email(user):
     from .models import DecisionHistory
-    subject, from_email, to = 'hello', 'from@example.com', 'to@example.com'
+    subject, from_email, to = 'Daily Stock Pick', 'cdelahun@iu.edu', user.email
     text= get_template('email/email.txt')
     html = get_template('email/email.html')
 
@@ -154,12 +154,9 @@ def daily_email(request):
     except ObjectDoesNotExist:
         stocks = None
 
-    d = { 'username': request.user, 'stock': stock, 'stocks': stocks}
+    d = { 'username': user.first_name, 'stock': stock, 'stocks': stocks}
 
     text_content = text.render(d)
     html_content = html.render(d)
 
-    msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
-    msg.attach_alternative(html_content, "text/html")
-    msg.send()
-
+    response = send_mail(subject,text_content,from_email,[to],html_message=html_content, fail_silently=False)
