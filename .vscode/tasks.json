@@ -3,11 +3,11 @@
     "tasks": [
 
         {
-            "label": "Start Redis",
+            "label": "Start Django",
             "type": "shell",
-            "command": "brew services start redis",
+            "command": "python3 manage.py runserver",
             "presentation": {
-                "reveal": "never",
+                "reveal": "always",
                 "panel": "new"
               },
               "runOptions": { "runOn": "folderOpen" }
@@ -15,22 +15,10 @@
         {
             "label": "Start Celery",
             "type": "shell",
-            "command": "celery -A daytrader  worker -l info",
+            "command": "cd frontend && npm run dev",
             "presentation": {
-                "reveal": "never",
+                "reveal": "always",
                 "panel": "new",
-                "echo": false,
-              },
-              "runOptions": { "runOn": "folderOpen" },
-        },
-        {
-            "label": "Start Mailhog",
-            "type": "shell",
-            "command": "brew services start mailhog",
-            "presentation": {
-                "reveal": "never",
-                "panel": "new",
-                "echo": false,
               },
               "runOptions": { "runOn": "folderOpen" },
         },
