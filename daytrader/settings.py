@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'trader',
 ]
 
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

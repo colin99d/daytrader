@@ -1,6 +1,6 @@
-workon daytrader
-brew services start postgresql
-brew services start redis
-celery -A daytrader  worker -l info
-celery -A daytrader beat
-brew services start mailhog
+#brew services start postgresql
+#brew services start mailhog
+#brew services start redis
+
+workon daytrader && celery -A daytrader  worker -l info
+workon daytrader && celery -A daytrader beat

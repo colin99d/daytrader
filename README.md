@@ -11,3 +11,7 @@
     1. CREATE ROLE myusername WITH LOGIN PASSWORD 'mypassword';
     1. GRANT ALL PRIVILEGES ON DATABASE daytrader TO myusername;
     1. ALTER USER myusername CREATEDB;
+
+1. Start Celery
+    1. celery -A daytrader worker -l info
+    1. celery -A daytrader beat

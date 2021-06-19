@@ -1,6 +1,5 @@
 from sklearn.model_selection import train_test_split
 from datetime import timedelta, time
-from .models import Algorithm, Stock, DecisionHistory
 from django.utils import timezone
 from sklearn import linear_model
 import scipy.stats as scpy
@@ -17,6 +16,7 @@ def valid_ticker(symbol):
     return False if ticker.start() > 200000 else True
 
 def today_trade():
+    from .models import Algorithm, Stock, DecisionHistory
     weekday = timezone.now().weekday()
     currTime = timezone.now().time()
     if weekday == 5:
@@ -120,6 +120,7 @@ def get_pick(data, symbols, i='default'):
     return long, pricel, decisionl, data.index[z]
 
 def get_closing():
+    from .models import DecisionHistory
     stocks = DecisionHistory.objects.filter(closingPrice=None)
     for stock in stocks:
         ticker = stock.stock.ticker
@@ -131,10 +132,12 @@ def get_closing():
         stock.save()
 
 
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import get_template
+
 
 def daily_email(request):
+    from django.core.mail import EmailMultiAlternatives
+    from django.template.loader import get_template
+    from .models import DecisionHistory
     subject, from_email, to = 'hello', 'from@example.com', 'to@example.com'
     text= get_template('email/email.txt')
     html = get_template('email/email.html')
