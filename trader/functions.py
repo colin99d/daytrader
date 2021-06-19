@@ -34,7 +34,10 @@ def today_trade():
         data = get_data(symbols)
         ticker, open, conf, tradeDate = get_pick(data, symbols)
         stock = Stock.objects.get(ticker=ticker)
-        algo = Algorithm.objects.get(pk=1)
+        try:
+            algo = Algorithm.objects.get(pk=1)
+        except:
+            algo = Algorithm.objects.create(name="First Algo")
         DecisionHistory.objects.create(stock=stock,algorithm=algo,openPrice=open,confidence=conf, tradeDate=tradeDate)
         get_closing()
 
