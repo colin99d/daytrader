@@ -19,7 +19,7 @@ def valid_ticker(symbol):
     return False if ticker.start() > 200000 else True
 
 def today_trade():
-    from .models import Algorithm, Stock, DecisionHistory
+    from .models import Algorithm, Stock, Decision
     weekday = timezone.now().weekday()
     currTime = timezone.now().time()
     if weekday == 5:
@@ -31,7 +31,7 @@ def today_trade():
             lastDate = timezone.now().date()
         else:
             lastDate = (timezone.now() - timedelta(days=1)).date()
-    if lastDate not in [x.tradeDate.date() for x in DecisionHistory.objects.all()]:
+    if lastDate not in [x.tradeDate.date() for x in Decision.objects.all()]:
         symbols = [x.ticker for x in Stock.objects.all()]
         data = get_data(symbols)
         ticker, open, conf, tradeDate = get_pick(data, symbols)
@@ -40,7 +40,7 @@ def today_trade():
             algo = Algorithm.objects.get(pk=1)
         except:
             algo = Algorithm.objects.create(name="First Algo")
-        DecisionHistory.objects.create(stock=stock,algorithm=algo,openPrice=open,confidence=conf, tradeDate=tradeDate)
+        Decision.objects.create(stock=stock,algorithm=algo,openPrice=open,confidence=conf, tradeDate=tradeDate)
         get_closing()
 
 def get_data(symbols):
@@ -126,8 +126,8 @@ def get_pick(data, symbols, i='default'):
     return long, pricel, decisionl, data.index[z]
 
 def get_closing():
-    from .models import DecisionHistory
-    stocks = DecisionHistory.objects.filter(closingPrice=None)
+    from .models import Decision
+    stocks = Decision.objects.filter(closingPrice=None)
     for stock in stocks:
         ticker = stock.stock.ticker
         tickDate = stock.tradeDate
@@ -139,18 +139,18 @@ def get_closing():
 
 
 def daily_email(user):
-    from .models import DecisionHistory
+    from .models import Decision
     subject, from_email, to = 'Daily Stock Pick', 'cdelahun@iu.edu', user.email
     text= get_template('email/email.txt')
     html = get_template('email/email.html')
 
     try:
-        stock = DecisionHistory.objects.latest('pk')
+        stock = Decision.objects.latest('pk')
     except ObjectDoesNotExist:
         stock = None
 
     try:
-        stocks = DecisionHistory.objects.all()
+        stocks = Decision.objects.all()
     except ObjectDoesNotExist:
         stocks = None
 

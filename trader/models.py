@@ -13,7 +13,7 @@ class Algorithm(models.Model):
     def __str__(self):
         return self.name
 
-class DecisionHistory(models.Model):
+class Decision(models.Model):
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE)
     openPrice = models.FloatField()

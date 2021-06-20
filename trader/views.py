@@ -1,39 +1,47 @@
-from .models import DecisionHistory, Stock
+from .serializers import DecisionSerializer, StockSerializer
+from rest_framework.response import Response
+from rest_framework import viewsets, status
+from .models import Decision, Stock
 from django.shortcuts import render
 from .functions import valid_ticker
-from .forms import StockForm
 
 
 # Create your views here.
 def home(request):
     if request.method == "GET":
-        form = StockForm()
-        error = None
-        
-    elif request.method == "POST":
-        form = StockForm(request.POST)
-        if form.is_valid():
-            ticker = form.cleaned_data['ticker'].upper()
-            if ticker == "" or ticker is None:
-                error =  "Invalid Ticker Symbol"
-            elif ticker.upper() in [x.ticker.upper() for x in Stock.objects.all()]:
-                error = "The stock is already being monitored"
-            elif valid_ticker(ticker) == True:
-                Stock.objects.create(ticker=ticker)
-                error = None
-            else:
-                error = "Invalid ticker symbol"
-        else:
-            error = "Invalid form"
-
-    context = {"stocks": Stock.objects.all(), "form": form}
-    if error:
-        context["error"] = error
-    return render(request, 'home.html', context)
+        return render(request, 'home.html')
 
 def table(request):
     if request.method == "GET":
         pass
-    context = {"stocks": DecisionHistory.objects.all()}
+    context = {"stocks": Decision.objects.all()}
 
     return render(request, 'table.html', context)
+
+class StockView(viewsets.ModelViewSet):
+    serializer_class = StockSerializer
+    queryset = Stock.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        ticker = serializer.validated_data.get('ticker').upper()
+        if ticker == "" or ticker is None:
+            response =  "Invalid Ticker Symbol"
+            sendStat = status.HTTP_406_NOT_ACCEPTABLE
+        elif ticker.upper() in [x.ticker.upper() for x in Stock.objects.all()]:
+            response = "The stock is already being monitored"
+            sendStat = status.HTTP_406_NOT_ACCEPTABLE
+        elif valid_ticker(ticker) == True:
+            response = serializer.data
+            Stock.objects.create(ticker=ticker)
+            sendStat = status.HTTP_201_CREATED 
+        else:
+            response = "Invalid ticker symbol"
+            sendStat = status.HTTP_406_NOT_ACCEPTABLE
+
+        return Response(response, status=sendStat)
+
+class DecisionView(viewsets.ModelViewSet):
+    serializer_class = DecisionSerializer
+    queryset = Decision.objects.all()

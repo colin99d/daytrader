@@ -1,4 +1,4 @@
-from .models import Stock, Algorithm, DecisionHistory
+from .models import Stock, Algorithm, Decision
 from django.contrib import admin
 
 
@@ -14,4 +14,4 @@ class DecisionHistroyAdmin(admin.ModelAdmin):
 
 admin.site.register(Stock, StockAdmin)
 admin.site.register(Algorithm, AlgorithmAdmin)
-admin.site.register(DecisionHistory, DecisionHistroyAdmin)
+admin.site.register(Decision, DecisionHistroyAdmin)
