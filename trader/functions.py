@@ -142,7 +142,7 @@ def get_cashflows(ticker):
     cf = stock.cashflow
 
     tCF = cf.filter(items=['Total Cash From Operating Activities', 'Total Cash From Financing Activities','Total Cashflows From Investing Activities'], axis=0)
-    jsonVals = tCF.to_json(orient="index")
+    jsonVals = tCF.to_dict(orient="index")
     return jsonVals
 
 
