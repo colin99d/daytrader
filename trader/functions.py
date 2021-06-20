@@ -137,6 +137,14 @@ def get_closing():
         setattr(stock, "closingPrice", closing)
         stock.save()
 
+def get_cashflows(ticker):
+    stock = yf.Ticker(ticker)
+    cf = stock.cashflow
+
+    tCF = cf.filter(items=['Total Cash From Operating Activities', 'Total Cash From Financing Activities','Total Cashflows From Investing Activities'], axis=0)
+    jsonVals = tCF.to_json(orient="index")
+    return jsonVals
+
 
 def daily_email(user):
     from .models import Decision
@@ -159,4 +167,4 @@ def daily_email(user):
     text_content = text.render(d)
     html_content = html.render(d)
 
-    response = send_mail(subject,text_content,from_email,[to],html_message=html_content, fail_silently=False)
+    send_mail(subject,text_content,from_email,[to],html_message=html_content, fail_silently=False)

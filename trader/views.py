@@ -1,22 +1,14 @@
 from .serializers import DecisionSerializer, StockSerializer
+from .functions import valid_ticker, get_cashflows
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 from .models import Decision, Stock
 from django.shortcuts import render
-from .functions import valid_ticker
-
 
 # Create your views here.
 def home(request):
     if request.method == "GET":
         return render(request, 'home.html')
-
-def table(request):
-    if request.method == "GET":
-        pass
-    context = {"stocks": Decision.objects.all()}
-
-    return render(request, 'table.html', context)
 
 class StockView(viewsets.ModelViewSet):
     serializer_class = StockSerializer
@@ -45,3 +37,7 @@ class StockView(viewsets.ModelViewSet):
 class DecisionView(viewsets.ModelViewSet):
     serializer_class = DecisionSerializer
     queryset = Decision.objects.all()
+
+def cashflows(request):
+    ticker = request.POST.get("ticker", "")
+    return get_cashflows(ticker.upper())

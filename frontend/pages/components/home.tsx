@@ -23,36 +23,37 @@ class Home extends Component<HomeProps, HomeState> {
       }
       handleChange(e:any, formKey:"ticker") {this.setState({[formKey]: e.target.value})}
 
-      handleErrors(response: any) {
+    handleErrors(response: any) {
         if (!response.ok) {
             throw Error(response.statusText);
         }
         return response;
     }
 
-      handleClick(e:any) {
-        if (this.state.ticker.length > 0) {
-        fetch(this.props.baseUrl + "/api/stocks/", {
+    postGeneric(endpoint:string, data: { [name: string]: string }): Promise<any>  {
+        return fetch(this.props.baseUrl + endpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ticker: this.state.ticker}),
+            body: JSON.stringify(data),
           })
           .then(this.handleErrors)
           .then(response => response.json())
-          .then(data => {
-            console.log(data.status)
-            console.log('Success:', data);
-            this.props.getFetch("/api/stocks/", "stocks");
-          })
-          .catch((error) => {
-            console.error('Error:', error);
-          });
+    }
+
+    handleClick() {
+        if (this.state.ticker.length > 0) {
+            this.postGeneric("/api/stocks/",{ticker: this.state.ticker})
+            .then(() => this.props.getFetch("/api/stocks/", "stocks"))
         } else {
             this.setState({error: "Cannot use a blank ticker."})
         }
-        }
+    }
+
+    handleActivate() {
+        
+    }
 
     render() {
       return (
@@ -62,7 +63,7 @@ class Home extends Component<HomeProps, HomeState> {
             <p className="text-red-500">{this.state.error}</p>
             <label className="block text-gray-700 text-sm font-bold mb-2"></label>
             <input onChange={(e) => {this.handleChange(e, 'ticker')}} value={this.state.ticker} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" name="ticker" maxLength={5} />
-            <button onClick={(e) => {this.handleClick(e)}} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4" type='button'>Submit</button>
+            <button onClick={() => {this.handleClick()}} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4" type='button'>Submit</button>
         </form>
 
         <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">Managed Assets</h2>
