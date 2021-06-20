@@ -1,24 +1,26 @@
 import React, { Component } from "react";
 import Header from './components/header.tsx'
+import Table from './components/table.tsx'
 import Home from './components/home.tsx'
 
-type stocks = {id: number, ticker: string}[];
-type algorithms = {id: number, name: string}[];
-type decisions = {
+type page = "home" | "table"
+type stock = {id: number, ticker: string};
+type algorithms = {id: number, name: string};
+type decision = {
   id: number, 
-  stock: number, 
-  algorithm:number,
+  stock: stock, 
+  algorithm:algorithms,
   openPrice: number,
   closingPrice: number,
   confidence: number,
   tradeDate: Date,
   created_at: Date
-}[]
+}
 
 type HomeState = {
-  page: string,
-  stocks: stocks,
-  decisions: decisions,
+  page: page,
+  stocks: stock[],
+  decisions: decision[],
   error: string,
   baseUrl: string
 }
@@ -47,24 +49,28 @@ class App extends Component<{}, HomeState> {
         }
         return response.json();
       })
-      .then((data: stocks | decisions) => this.setState({...this.state, [state]: data})
+      .then((data: stock | decision) => this.setState({...this.state, [state]: data})
       );
   }
 
-  handleClick (arg:string) {
-    this.setState({page:arg})
-  }
+  handleClick (arg:page) {this.setState({page:arg})}
 
   componentDidMount() {
     this.getFetch("/api/stocks/", "stocks");
     this.getFetch("/api/decisions/", "decisions")
   }
   render() {
+    let page;
+    if (this.state.page =="home") {
+      page = <Home stocks={this.state.stocks} baseUrl={this.state.baseUrl} getFetch={this.getFetch}/>;
+    } else if (this.state.page == "table") {
+      page = <Table decisions={this.state.decisions}/>;
+    }
     return (
       <div className="h-screen">
         <Header handleClick={this.handleClick} page={this.state.page} />
         <div className="bg-gray-200 h-full">
-          <Home stocks={this.state.stocks} baseUrl={this.state.baseUrl} getFetch={this.getFetch}/>
+          {page}
         </div>
       </div>
     )
