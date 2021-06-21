@@ -1,6 +1,18 @@
 import React, { Component } from "react";
 import { ResponsiveLine } from '@nivo/line';
 
+const theme={
+    axis: {
+      ticks: {
+        text: {
+          fontSize: 16,
+        }
+      }
+    }
+  }
+
+type data = {id: string, data:{x:string,y:number}[]}
+
 type HomeProps = {
     stocks: {id: number, ticker: string}[],
     baseUrl: string,
@@ -10,7 +22,8 @@ type HomeProps = {
 type HomeState = {
     ticker: string,
     error: string,
-    data: any  //update
+    data: data[],
+    tickerDisplay: string
 }
 
 class Home extends Component<HomeProps, HomeState> {
@@ -19,17 +32,19 @@ class Home extends Component<HomeProps, HomeState> {
         this.state = {
             ticker: "",
             error: "",
-            data: "",
+            data: null,
+            tickerDisplay: "",
         };
         this.handleChange = this.handleChange.bind(this);
         this.handleActivate = this.handleActivate.bind(this);
         this.handleClick = this.handleClick.bind(this);
+        this.handleErrors = this.handleErrors.bind(this);
       }
       handleChange(e:any, formKey:"ticker") {this.setState({[formKey]: e.target.value})}
 
-    handleErrors(response: any) {
+    handleErrors(response: any): any {
         if (!response.ok) {
-            throw Error(response.statusText);
+            this.setState({error:response.statusText});
         }
         return response;
     }
@@ -46,7 +61,7 @@ class Home extends Component<HomeProps, HomeState> {
           .then(response => response.json())
     }
 
-    handleClick() {
+    handleClick(): void {
         if (this.state.ticker.length > 0) {
             this.postGeneric("/api/stocks/",{ticker: this.state.ticker})
             .then(() => this.props.getFetch("/api/stocks/", "stocks"))
@@ -55,9 +70,33 @@ class Home extends Component<HomeProps, HomeState> {
         }
     }
 
-    handleActivate(ticker: string) {
+    handleActivate(ticker: string): void {
         this.postGeneric("/cashflows/",{ticker: ticker})
-        .then(data => {this.setState({data: data})})
+        .then(data => {this.setState({data: data, tickerDisplay: ticker})})
+    }
+
+    formatNumber(value: number): string {
+        if (value == 0) {
+            return "$" + value.toString();
+        } else if ((Math.abs(value) / 1000000000000) > 1) {
+            return "$" + (value / 1000000000000).toString() + "T"
+        } else if ((Math.abs(value) / 1000000000) > 1) {
+            return "$" + (value / 1000000000).toString() + "B"
+        } else if ((Math.abs(value) / 1000000) > 1) {
+            return "$" + (value / 1000000).toString() + "M"
+        } else if ((Math.abs(value) / 1000) > 1) {
+            return "$" + (value / 1000).toString() + "K"
+        }
+    }
+
+    getTickerDates(): Date[] {
+        var dates: Date[] = [];
+        this.state.data.forEach(item => {
+            item["data"].forEach(subItem => {
+                dates.push(new Date(subItem["x"]));
+            })
+        })
+        return Array.from(new Set(dates));
     }
 
     render() {
@@ -74,7 +113,7 @@ class Home extends Component<HomeProps, HomeState> {
 
             <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">Managed Assets</h2>
 
-                <div className="bg-white shadow-xl rounded-lg">
+                <div className="bg-white shadow-xl rounded-lg overflow-y-auto h-2/4">
                     <ul className="divide-y divide-gray-300">
                         {this.props.stocks ? this.props.stocks.map( item => 
                         <li onClick={() => {this.handleActivate(item.ticker)}} className="p-4 hover:bg-gray-50 cursor-pointer" key={item.id}>{item.ticker}</li>
@@ -83,75 +122,71 @@ class Home extends Component<HomeProps, HomeState> {
                 </div>
                 </div>
             <div className="ml-5 h-3/4 w-full">
-            <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">Chart</h1>
-            {this.state.data ?<ResponsiveLine
-            data={this.state.data}
-        margin={{ top: 50, right: 160, bottom: 50, left: 60 }}
-        xScale={{
-            type: 'time',
-            format: '%m-%d-%Y',
-            precision: 'year',
-            }}
-        yScale={{ type: 'linear', stacked: true }}
-        yFormat=" >-.2f"
-        curve="monotoneX"
-        axisTop={null}
-        axisBottom={{
-            tickSize: 5,
-            tickPadding: 5,
-            tickRotation: 0,
-            format: '.2f',
-            legend: 'Date',
-            legendOffset: 36,
-            legendPosition: 'middle'
-        }}
-        axisLeft={{
-            tickSize: 5,
-            tickPadding: 5,
-            tickRotation: 0,
-            format: '.2s',
-            legend: 'Cash Flows',
-            legendOffset: -40,
-            legendPosition: 'middle'
-        }}
-        enableGridX={false}
-        colors={{ scheme: 'spectral' }}
-        lineWidth={1}
-        pointSize={4}
-        pointColor={{ theme: 'background' }}
-        pointBorderWidth={1}
-        pointBorderColor={{ from: 'serieColor' }}
-        pointLabelYOffset={-12}
-        useMesh={true}
-        gridXValues={[ 0, 20, 40, 60, 80, 100, 120 ]}
-        gridYValues={[ 0, 500, 1000, 1500, 2000, 2500 ]}
-        legends={[
-            {
-                anchor: 'bottom-right',
-                direction: 'column',
-                justify: false,
-                translateX: 140,
-                translateY: 0,
-                itemsSpacing: 2,
-                itemDirection: 'left-to-right',
-                itemWidth: 80,
-                itemHeight: 12,
-                itemOpacity: 0.75,
-                symbolSize: 12,
-                symbolShape: 'circle',
-                symbolBorderColor: 'rgba(0, 0, 0, .5)',
-                effects: [
+            <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate text-center">{this.state.tickerDisplay}</h1>
+            {this.state.data ?<div className="w-full h-full bg-white">
+            <ResponsiveLine 
+                theme={theme}
+                data={this.state.data}
+                margin={{ top: 50, right: 50, bottom: 100, left: 65 }}
+                xScale={{ format: "%m-%d-%Y", type: "time" }}
+                yScale={{ type: 'linear', stacked: false, min:"auto", max:"auto"}}
+                xFormat="time:%m-%d-%Y"
+                yFormat=">-$,.2f"
+                curve="monotoneX"
+                axisTop={null}
+                axisBottom={{
+                    tickValues: this.getTickerDates(),
+                    tickSize: 5,
+                    tickPadding: 5,
+                    tickRotation: 0,
+                    format: "%m-%d-%Y",
+                    legendOffset: 36,
+                    legendPosition: "middle"
+                }}
+                axisLeft={{
+                    tickSize: 5,
+                    tickPadding: 5,
+                    tickRotation: 0,
+                    format: d => this.formatNumber(d),
+                    legendOffset: -45,
+                    legendPosition: 'middle'
+                }}
+                enableGridX={false}
+                colors={{ scheme: 'spectral' }}
+                lineWidth={3}
+                pointSize={6}
+                pointColor={{ theme: 'background' }}
+                pointBorderWidth={1}
+                pointBorderColor={{ from: 'serieColor' }}
+                pointLabelYOffset={-12}
+                useMesh={true}
+                legends={[
                     {
-                        on: 'hover',
-                        style: {
-                            itemBackground: 'rgba(0, 0, 0, .03)',
-                            itemOpacity: 1
-                        }
+                        anchor: 'bottom-left',
+                        direction: 'column',
+                        justify: false,
+                        translateX: 0,
+                        translateY: 90,
+                        itemsSpacing: 2,
+                        itemDirection: 'left-to-right',
+                        itemWidth: 80,
+                        itemHeight: 12,
+                        itemOpacity: 0.75,
+                        symbolSize: 12,
+                        symbolShape: 'circle',
+                        symbolBorderColor: 'rgba(0, 0, 0, .5)',
+                        effects: [
+                            {
+                                on: 'hover',
+                                style: {
+                                    itemBackground: 'rgba(0, 0, 0, .03)',
+                                    itemOpacity: 1
+                                }
+                            }
+                        ]
                     }
-                ]
-            }
-        ]}
-    /> : null}
+                ]}
+            /></div> : null}
     </div>
         </div>
   )

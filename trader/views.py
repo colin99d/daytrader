@@ -56,8 +56,5 @@ def cashflows(request):
                 date = key2.to_pydatetime().date().strftime("%m-%d-%Y")
                 newObj["data"].append({"x":date, "y":value})
             newCf.append(newObj)
-        
-        print("--------------------")
-        print(newCf)
-        print("--------------------")
+        #print(newCf)
         return JsonResponse(newCf, safe=False)
