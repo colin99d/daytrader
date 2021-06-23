@@ -33,7 +33,7 @@ class App extends Component<{}, HomeState> {
         stocks: null,
         decisions: null,
         error: "",
-        baseUrl: "http://http://192.168.1.72",
+        baseUrl: "http://192.168.1.72:8000",
     };
     this.handleClick = this.handleClick.bind(this);
     this.getFetch = this.getFetch.bind(this);
