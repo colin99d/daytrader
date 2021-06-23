@@ -59,7 +59,7 @@ class Table extends Component<TableProps, {}> {
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.stock.ticker}</td>
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">${this.round(item.openPrice,3)}</td>
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">${this.round(item.closingPrice,3)}</td>
-                                        <td className={"px-5 py-5 border-b border-gray-200 bg-white text-sm" + (item.closingPrice > item.openPrice ? "text-green-500" : "text-red-500")}>{this.round(((item.closingPrice - item.openPrice)/item.openPrice)*100,2)}</td>
+                                        <td className={"px-5 py-5 border-b border-gray-200 bg-white text-sm " + (item.closingPrice > item.openPrice ? "text-green-500" : "text-red-500")}>{this.round(((item.closingPrice - item.openPrice)/item.openPrice)*100,2)}%</td>
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.confidence}%</td>
                                     </tr>
                                 )}
