@@ -21,6 +21,11 @@ def begin_day():
 def end_day():
     get_closing()
 
+@app.task
+def send_email():
+    from django.contrib.auth.models import User
+    daily_email(User.objects.get(pk=1))
+
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(crontab(hour=9, minute=31, day_of_week='1-5'), begin_day, name='Get daily trade')
