@@ -11,11 +11,10 @@ EOF
 
 if [[ $1 == "runserver" ]]
 then
-    screen python3 manage.py runserver 192.168.1.72:8000
-    cd frontend && screen npm run dev
-    gnome-terminal -x bash -c "cd frontend && npm run dev -H 192.168.1.72; exec bash"
-    gnome-terminal -x bash -c "celery -A daytrader worker -l info"
-    gnome-terminal -x bash -c "celery -A daytrader beat"
+    screen -S DjangoAPI -d -m python3 manage.py runserver 192.168.1.72:8000
+    screen -S Next -d -m npm run dev --prefix frontend
+    screen -S cWorker -d -m celery -A daytrader worker -l info
+    screen -S cBeat -d -m celery -A daytrader beat
 
 elif [[ $1 == "collectstatic" ]]
 then
