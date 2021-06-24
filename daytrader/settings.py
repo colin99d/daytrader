@@ -29,7 +29,7 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = ['192.168.1.72',]
+ALLOWED_HOSTS = ['192.168.1.72','127.0.0.1']
 
 
 # Application definition
@@ -147,16 +147,10 @@ CELERY_TIMEZONE = 'America/Indiana/Indianapolis' # Your timezone
 # https://sendgrid.com/docs/for-developers/sending-email/django/
 EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_HOST_USER = "apikey"
-EMAIL_HOST_PASSWORD = "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"
+EMAIL_HOST_PASSWORD = env('SENDGRID_KEY')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-
-"""
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = "127.0.0.1"
-EMAIL_PORT = 1025
-"""
 
 CORS_ORIGIN_ALLOW_ALL = False
 
