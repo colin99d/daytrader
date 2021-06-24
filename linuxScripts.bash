@@ -11,6 +11,7 @@ EOF
 
 if [[ $1 == "runserver" ]]
 then
+    pkill screen
     pip install -r requirements.txt
     python3 manage.py makemigrations
     python3 manage.py migrate
