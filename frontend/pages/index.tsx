@@ -34,7 +34,7 @@ class App extends Component<{}, HomeState> {
         stocks: null,
         decisions: null,
         error: "",
-        baseUrl: "http://192.168.1.72:8000/a", //remove /a
+        baseUrl: "http://192.168.1.72:8000",
     };
     this.handleClick = this.handleClick.bind(this);
     this.getFetch = this.getFetch.bind(this);
