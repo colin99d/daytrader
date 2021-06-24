@@ -1,8 +1,8 @@
 import React, { Component } from "react";
-import Header from './components/header.tsx'
-import Table from './components/table.tsx'
-import Home from './components/home.tsx'
-import Chat from './components/chat.tsx'
+import Header from './components/header'
+import Table from './components/table'
+import Home from './components/home'
+import Chat from './components/chat'
 
 type page = "home" | "table" | "chat"
 type stock = {id: number, ticker: string};
