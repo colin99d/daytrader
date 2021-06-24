@@ -2,8 +2,9 @@ import React, { Component } from "react";
 import Header from './components/header.tsx'
 import Table from './components/table.tsx'
 import Home from './components/home.tsx'
+import Chat from './components/chat.tsx'
 
-type page = "home" | "table"
+type page = "home" | "table" | "chat"
 type stock = {id: number, ticker: string};
 type algorithms = {id: number, name: string};
 type decision = {
@@ -33,7 +34,7 @@ class App extends Component<{}, HomeState> {
         stocks: null,
         decisions: null,
         error: "",
-        baseUrl: "http://192.168.1.72:8000",
+        baseUrl: "http://192.168.1.72:8000/a", //remove /a
     };
     this.handleClick = this.handleClick.bind(this);
     this.getFetch = this.getFetch.bind(this);
@@ -65,11 +66,13 @@ class App extends Component<{}, HomeState> {
       page = <Home stocks={this.state.stocks} baseUrl={this.state.baseUrl} getFetch={this.getFetch}/>;
     } else if (this.state.page == "table") {
       page = <Table decisions={this.state.decisions}/>;
+    } else if (this.state.page == "chat") {
+      page = <Chat />
     }
     return (
-      <div className="h-screen">
+      <div className="h-screen w-screen">
         <Header handleClick={this.handleClick} page={this.state.page} />
-        <div className="bg-gray-200 h-full">
+        <div className="bg-gray-200 h-full w-full">
           {page}
         </div>
       </div>

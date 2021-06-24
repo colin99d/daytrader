@@ -17,9 +17,6 @@ type TableProps = {
     decisions: decision[]
   }
 
-type TableState = {
-}
-
 class Table extends Component<TableProps, {}> {
     constructor(props: any) {
         super(props);
@@ -28,7 +25,7 @@ class Table extends Component<TableProps, {}> {
       }
 
     round(value: number, decimals: number) {
-        return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+        return Number(Math.round(Number(value+'e'+decimals))+'e-'+decimals);
       }
 
     render() {
@@ -53,7 +50,7 @@ class Table extends Component<TableProps, {}> {
                             </thead>
                             <tbody>
                                 
-                                {this.props.decisions.map((item:decision )=> 
+                                {this.props.decisions ? this.props.decisions.map((item:decision )=> 
                                     <tr key={item.id}>
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{new Date(item.tradeDate).toLocaleDateString("en-US")}</td>
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.stock.ticker}</td>
@@ -62,7 +59,7 @@ class Table extends Component<TableProps, {}> {
                                         <td className={"px-5 py-5 border-b border-gray-200 bg-white text-sm " + (item.closingPrice > item.openPrice ? "text-green-500" : "text-red-500")}>{this.round(((item.closingPrice - item.openPrice)/item.openPrice)*100,2)}%</td>
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.confidence}%</td>
                                     </tr>
-                                )}
+                                ) : null}
                             </tbody>
                         </table>
                     </div>
