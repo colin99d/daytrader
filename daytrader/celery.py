@@ -24,7 +24,9 @@ def end_day():
 @app.task
 def send_email():
     from django.contrib.auth.models import User
-    daily_email(User.objects.get(pk=1))
+    for item in User.objects.all():
+        if item.email:
+            daily_email(item)
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
