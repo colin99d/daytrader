@@ -11,6 +11,28 @@ import pandas as pd
 import requests, re
 import numpy as np
 
+def last_date():
+    time(16,0,0)
+    weekday = timezone.now().weekday()
+    currTime = timezone.now().time()
+    if weekday == 5:
+        lastDate = (timezone.now() - timedelta(days=1)).date()
+        close = True
+    elif weekday == 6:
+        lastDate = (timezone.now() - timedelta(days=2)).date()
+        close = True
+    else:
+        if currTime > time(16,0,0):
+            lastDate = timezone.now().date()
+            close = True
+        elif currTime > time(9,30,0):
+            lastDate = timezone.now().date()
+            close = False
+        else:
+            lastDate = (timezone.now() - timedelta(days=1)).date()
+            close = True
+    return lastDate, close
+
 
 def valid_ticker(symbol):
     url = 'https://finance.yahoo.com/quote/' + symbol.upper()
@@ -20,18 +42,8 @@ def valid_ticker(symbol):
 
 def today_trade():
     from .models import Algorithm, Stock, Decision
-    weekday = timezone.now().weekday()
-    currTime = timezone.now().time()
-    if weekday == 5:
-        lastDate = (timezone.now() - timedelta(days=1)).date()
-    elif weekday == 6:
-        lastDate = (timezone.now() - timedelta(days=2)).date()
-    else:
-        if currTime > time(9,30,0):
-            lastDate = timezone.now().date()
-        else:
-            lastDate = (timezone.now() - timedelta(days=1)).date()
-    if lastDate not in [x.tradeDate.date() for x in Decision.objects.all()]:
+    last = last_date()
+    if last not in [x.tradeDate.date() for x in Decision.objects.all()]:
         symbols = [x.ticker for x in Stock.objects.all()]
         data = get_data(symbols)
         ticker, open, conf, tradeDate = get_pick(data, symbols)
@@ -41,7 +53,6 @@ def today_trade():
         except:
             algo = Algorithm.objects.create(name="First Algo")
         Decision.objects.create(stock=stock,algorithm=algo,openPrice=open,confidence=conf, tradeDate=tradeDate)
-        get_closing()
 
 def get_data(symbols):
     data = yf.download(symbols, period = "1y",interval = '1d' )
@@ -126,6 +137,7 @@ def get_pick(data, symbols, i='default'):
     return long, pricel, decisionl, data.index[z]
 
 def get_closing():
+    #This fails if closing is 
     from .models import Decision
     stocks = Decision.objects.filter(closingPrice=None)
     for stock in stocks:

@@ -30,5 +30,5 @@ def send_email():
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
-    sender.add_periodic_task(crontab(hour=9, minute=31, day_of_week='1-5'), begin_day, name='Get daily trade')
+    sender.add_periodic_task(crontab(hour=9, minute=32, day_of_week='1-5'), begin_day, name='Get daily trade')
     sender.add_periodic_task(crontab(hour=16, minute=1, day_of_week='1-5'), end_day, name='Get closing price')

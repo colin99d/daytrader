@@ -6,7 +6,6 @@ from rest_framework import viewsets, status
 from django.http import JsonResponse
 from .models import Decision, Stock
 from django.shortcuts import render
-from datetime import datetime
 import json
 
 # Create your views here.
@@ -56,5 +55,4 @@ def cashflows(request):
                 date = key2.to_pydatetime().date().strftime("%m-%d-%Y")
                 newObj["data"].append({"x":date, "y":value})
             newCf.append(newObj)
-        #print(newCf)
         return JsonResponse(newCf, safe=False)

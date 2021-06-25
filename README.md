@@ -15,3 +15,7 @@
 1. Start Celery
     1. celery -A daytrader worker -l info
     1. celery -A daytrader beat
+
+1. Run coverage report
+    1. coverage run --source='.' manage.py test
+    1. coverage html
