@@ -29,7 +29,7 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = ['192.168.1.72','127.0.0.1']
+ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(',')
 
 
 # Application definition
@@ -45,6 +45,12 @@ INSTALLED_APPS = [
     'trader',
     'chat',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    )
+}
 
 
 MIDDLEWARE = [
@@ -89,7 +95,7 @@ DATABASES = {
         'USER': env('DATABASE_USERNAME'),
         'PASSWORD': env('DATABASE_PASSWORD'),
         'HOST': env('DATABASE_HOST'),
-        'PORT': '',
+        'PORT': env('DATABASE_PORT'),
     }
 }
 
@@ -137,24 +143,21 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-BROKER_URL = 'redis://localhost:6379' # Your redis default URL
-CELERY_RESULT_BACKEND = 'redis://localhost:6379' # Same as up
+BROKER_URL = env('REDIS_BROKER_URL')
+CELERY_RESULT_BACKEND = env('REDIS_BROKER_URL')
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'America/Indiana/Indianapolis' # Your timezone
 
 # https://sendgrid.com/docs/for-developers/sending-email/django/
-EMAIL_HOST = "smtp.sendgrid.net"
-EMAIL_HOST_USER = "apikey"
+EMAIL_HOST = env("SENDGRID_EMAIL_HOST")
+EMAIL_HOST_USER = env("SENDGRID_HOST_USER")
 EMAIL_HOST_PASSWORD = env('SENDGRID_KEY')
-EMAIL_PORT = 587
+EMAIL_PORT = env("SENDGRID_PORT")
 EMAIL_USE_TLS = True
 
 
 CORS_ORIGIN_ALLOW_ALL = False
 
-CORS_ORIGIN_WHITELIST = (
-    'http://localhost:3000',
-    'http://192.168.1.72:3000'
-)
+CORS_ORIGIN_WHITELIST = env("CORS_WHITELIST").split(',')

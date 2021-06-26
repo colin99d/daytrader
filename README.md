@@ -19,3 +19,4 @@
 1. Run coverage report
     1. coverage run --source='.' manage.py test
     1. coverage html
+    1. The main report is in htmlcov/index.html

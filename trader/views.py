@@ -1,12 +1,12 @@
 from .serializers import DecisionSerializer, StockSerializer
-from .functions import valid_ticker, get_cashflows
 from django.views.decorators.csrf import csrf_exempt
+from .functions import valid_ticker, get_cashflows
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 from django.http import JsonResponse
 from .models import Decision, Stock
 from django.shortcuts import render
-import json
+from .forms import StockForm
 
 # Create your views here.
 def home(request):
@@ -44,9 +44,9 @@ class DecisionView(viewsets.ModelViewSet):
 @csrf_exempt
 def cashflows(request):
     if request.method == "POST":
-        body_unicode = request.body.decode('utf-8')
-        body = json.loads(body_unicode)
-        content = body['ticker']
+        form = StockForm(request.POST)
+        form.is_valid()
+        content = form.cleaned_data['ticker']
         cashflows = get_cashflows(content.upper())
         newCf = []
         for key in cashflows:

@@ -19,7 +19,7 @@ class Decision(models.Model):
     openPrice = models.FloatField()
     closingPrice = models.FloatField(null=True, blank=True)
     confidence = models.FloatField()
-    tradeDate= models.DateTimeField()
+    tradeDate= models.DateField()
     created_at= models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

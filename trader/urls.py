@@ -4,8 +4,8 @@ from rest_framework import routers
 from django.urls import path, include
 
 router = routers.DefaultRouter()
-router.register(r'stocks', StockView, 'stocks')
-router.register(r'decisions', DecisionView, 'decisions')
+router.register(r'stocks', StockView, basename='stocks')
+router.register(r'decisions', DecisionView, basename='decisions')
 
 urlpatterns = [
     path('api/', include(router.urls)),

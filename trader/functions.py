@@ -11,10 +11,9 @@ import pandas as pd
 import requests, re
 import numpy as np
 
-def last_date():
-    time(16,0,0)
-    weekday = timezone.now().weekday()
-    currTime = timezone.now().time()
+def last_date(dt):
+    weekday = dt.weekday()
+    currTime = dt.time()
     if weekday == 5:
         lastDate = (timezone.now() - timedelta(days=1)).date()
         close = True
@@ -42,7 +41,7 @@ def valid_ticker(symbol):
 
 def today_trade():
     from .models import Algorithm, Stock, Decision
-    last = last_date()
+    last = last_date(timezone.now())
     if last not in [x.tradeDate.date() for x in Decision.objects.all()]:
         symbols = [x.ticker for x in Stock.objects.all()]
         data = get_data(symbols)
@@ -65,21 +64,15 @@ def get_data(symbols):
         data = data.fillna(0)
     return data
 
-def get_pick(data, symbols, i='default'):
+def get_pick(data, symbols):
     opens = []
     closes = []
     decisions = []
     
     for symbol in symbols:
-        
-        if i != 'default':
-            x=i+1
-            y=i+64
-            z=i+65
-        else:
-            x=0
-            y=-2
-            z=-1
+        x=0
+        y=-2
+        z=-1
         #features = ['Open','pHigh','pLow','pClose','pVolume']
         #symbolz = [x for symbol in features]
         #X = data[features, symbolz][i+1:i+64]
@@ -143,11 +136,12 @@ def get_closing():
     for stock in stocks:
         ticker = stock.stock.ticker
         tickDate = stock.tradeDate
-        endDate = stock.tradeDate + timedelta(days=1)
-        result = yf.Ticker(ticker).history(start=tickDate.date(), end=endDate.date())
-        closing = result["Close"].iloc[0]
-        setattr(stock, "closingPrice", closing)
-        stock.save()
+        if timezone.now().date() > tickDate or timezone.now().time() > time(16,0,0):
+            endDate = stock.tradeDate + timedelta(days=1)
+            result = yf.Ticker(ticker).history(start=tickDate, end=endDate)
+            closing = result["Close"].iloc[0]
+            setattr(stock, "closingPrice", closing)
+            stock.save()
 
 def get_cashflows(ticker):
     stock = yf.Ticker(ticker)
