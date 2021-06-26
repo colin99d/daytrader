@@ -15,20 +15,20 @@ def last_date(dt):
     weekday = dt.weekday()
     currTime = dt.time()
     if weekday == 5:
-        lastDate = (timezone.now() - timedelta(days=1)).date()
+        lastDate = (dt - timedelta(days=1)).date()
         close = True
     elif weekday == 6:
-        lastDate = (timezone.now() - timedelta(days=2)).date()
+        lastDate = (dt - timedelta(days=2)).date()
         close = True
     else:
         if currTime > time(16,0,0):
-            lastDate = timezone.now().date()
+            lastDate = dt.date()
             close = True
         elif currTime > time(9,30,0):
-            lastDate = timezone.now().date()
+            lastDate = dt.date()
             close = False
         else:
-            lastDate = (timezone.now() - timedelta(days=1)).date()
+            lastDate = (dt - timedelta(days=1)).date()
             close = True
     return lastDate, close
 

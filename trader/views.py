@@ -21,13 +21,7 @@ class StockView(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         ticker = serializer.validated_data.get('ticker').upper()
-        if ticker == "" or ticker is None:
-            response =  "Invalid Ticker Symbol"
-            sendStat = status.HTTP_406_NOT_ACCEPTABLE
-        elif ticker.upper() in [x.ticker.upper() for x in Stock.objects.all()]:
-            response = "The stock is already being monitored"
-            sendStat = status.HTTP_406_NOT_ACCEPTABLE
-        elif valid_ticker(ticker) == True:
+        if valid_ticker(ticker) == True:
             response = serializer.data
             Stock.objects.create(ticker=ticker)
             sendStat = status.HTTP_201_CREATED 
