@@ -49,11 +49,12 @@ class Home extends Component<HomeProps, HomeState> {
         return response;
     }
 
-    postGeneric(endpoint:string, data: { [name: string]: string }): Promise<any>  {
+    postGeneric(endpoint:string, data: { [name: string]: string } | FormData): Promise<any>  {
         return fetch(this.props.baseUrl + endpoint, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify(data),
           })
@@ -71,7 +72,11 @@ class Home extends Component<HomeProps, HomeState> {
     }
 
     handleActivate(ticker: string): void {
-        this.postGeneric("/cashflows/",{ticker: ticker})
+        let url = this.props.baseUrl + "/cashflows/";
+        let data  = new FormData();
+        data.append('ticker', ticker)
+        fetch(url, {method: 'post',body: data,})
+        .then(response => response.json())
         .then(data => {this.setState({data: data, tickerDisplay: ticker})})
     }
 

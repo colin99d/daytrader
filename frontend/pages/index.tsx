@@ -7,7 +7,7 @@ import Login from './components/login';
 import Signup from './components/signup';
 import Error from './components/error';
 
-type page = "home" | "table" | "chat" | "login" | "signup"
+type pageOpts = "home" | "table" | "chat" | "login" | "signup"
 type stock = {id: number, ticker: string};
 type algorithms = {id: number, name: string};
 type decision = {
@@ -34,7 +34,7 @@ type signup = {
 }
 
 type HomeState = {
-  page: page,
+  page: pageOpts,
   stocks: stock[],
   decisions: decision[],
   error: string,
@@ -56,9 +56,9 @@ class App extends Component<{}, HomeState> {
         username: '',
     };
     this.handleClick = this.handleClick.bind(this);
-    this.handleLogin = this.handleLogout.bind(this);
+    this.handleLogin = this.handleLogin.bind(this);
     this.handleSignup = this.handleSignup.bind(this);
-    this.handleLogout = this.handleClick.bind(this);
+    this.handleLogout = this.handleLogout.bind(this);
     this.getFetch = this.getFetch.bind(this);
   }
 
@@ -78,7 +78,7 @@ class App extends Component<{}, HomeState> {
       );
   }
 
-  handleClick (arg:page) {this.setState({page:arg})}
+  handleClick (arg:pageOpts) {this.setState({page:arg})}
 
 
   componentDidMount() {
@@ -117,17 +117,25 @@ class App extends Component<{}, HomeState> {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)
     })
-      .then(res => res.json())
+    .then((response) => {
+      if (response.ok) {
+        return response.json()
+      } else {
+        throw new Error('Invalid signup attempt');
+      }
+    })
       .then(json => {
         localStorage.setItem('token', json.token);
         this.setState({
           loggedIn: true,
           username: json.user.username,
           page: "home"
+        }, () => {
+          this.getFetch("/api/stocks/", "stocks");
+          this.getFetch("/api/decisions/", "decisions")
         });
       });
-      this.getFetch("/api/stocks/", "stocks");
-      this.getFetch("/api/decisions/", "decisions")
+
   };
 
   handleSignup(e, data: signup) {
@@ -142,36 +150,40 @@ class App extends Component<{}, HomeState> {
         localStorage.setItem('token', json.token);
         this.setState({
           loggedIn: true,
-          username: json.username
+          username: json.username,
+          page: "home"
+        },() => {
+          this.getFetch("/api/stocks/", "stocks");
+          this.getFetch("/api/decisions/", "decisions")
         });
       });
   };
 
   handleLogout() {
     localStorage.removeItem('token');
-    this.setState({ loggedIn: false, username: '', page: "login" });
+    this.setState({...this.state, loggedIn: false, username: '', page: "login" });
   };
 
   render() {
-    let page;
+    let viewPage;
     if (this.state.page =="home" && this.state.loggedIn) {
-      page = <Home stocks={this.state.stocks} baseUrl={this.state.baseUrl} getFetch={this.getFetch}/>;
+      viewPage = <Home stocks={this.state.stocks} baseUrl={this.state.baseUrl} getFetch={this.getFetch}/>;
     } else if (this.state.page == "table" && this.state.loggedIn) {
-      page = <Table decisions={this.state.decisions}/>;
+      viewPage = <Table decisions={this.state.decisions}/>;
     } else if (this.state.page == "chat" && this.state.loggedIn) {
-      page = <Chat />
+      viewPage = <Chat />
     } else if (this.state.page == "login" && !this.state.loggedIn) {
-      page = <Login handleLogin={this.handleLogin} handleClick={this.handleClick}/>
+      viewPage = <Login handleLogin={this.handleLogin} handleClick={this.handleClick}/>
     } else if (this.state.page == "signup" && !this.state.loggedIn) {
-      page = <Signup handleSignup={this.handleSignup} handleClick={this.handleClick}/>
+      viewPage = <Signup handleSignup={this.handleSignup} handleClick={this.handleClick}/>
     } else {
-      page = <Error />
+      viewPage = <Error />
     }
     return (
       <div className="h-screen w-screen">
         <Header handleClick={this.handleClick} page={this.state.page} username={this.state.username} handleLogout={this.handleLogout}/>
         <div className="bg-gray-200 h-full w-full">
-          {page}
+          {viewPage}
         </div>
       </div>
     )

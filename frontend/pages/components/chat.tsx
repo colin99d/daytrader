@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 
 type ForumProps = {
-    message: string,
+    text: string,
   }
 
 class Forum extends Component<ForumProps, {}> {
@@ -22,13 +22,42 @@ class Forum extends Component<ForumProps, {}> {
 }
 }
 
+type MessageProps = {
+    text: string,
+    user: boolean,
+  }
 
-class Chat extends Component<{}, {}> {
+class Message extends Component<MessageProps, {}> {
+
+    render() {
+        let firstDiv = this.props.user ? "justify-end" : "justify-start"
+        let secondDiv = this.props.user ? "mr-2  bg-blue-400 rounded-bl-3xl rounded-tl-3xl rounded-tr-xl" : "ml-2 bg-gray-400 rounded-br-3xl rounded-tr-3xl rounded-tl-xl"
+      return (
+        
+        <div className={"flex mb-4 " + firstDiv}>
+            <div className={"text-white py-3 px-4 " + secondDiv}>
+            {this.props.text}
+            </div>
+        </div>
+  )
+}
+}
+
+type ChatState = {
+    roomName: string
+}
+
+
+class Chat extends Component<{}, ChatState> {
     constructor(props: any) {
         super(props);
         this.state = {
+            roomName: ''
         };
+        this.handleChange = this.handleChange.bind(this);
       }
+
+    handleChange(e:any, formKey: "roomName") {this.setState({...this.state, [formKey]: e.target.value})}
 
     render() {
       return (
@@ -36,87 +65,23 @@ class Chat extends Component<{}, {}> {
             <div className="flex flex-row justify-between bg-white h-full">
             <div className="flex flex-col w-2/5 border-r-2 overflow-y-auto">
                 <div className="border-b-2 py-4 px-2">
-                <input type="text" placeholder="search chatting" className="py-2 px-2 border-2 border-gray-200 rounded-2xl w-full"/>
+                <input value={this.state.roomName} onChange={(e) => {this.handleChange(e, "roomName")}} type="text" placeholder="search chatting" className="py-2 px-2 border-2 border-gray-200 rounded-2xl w-full"/>
+                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
                 </div>
 
-                <Forum message={'ur mom'}/>
-
+                <Forum text={'ur mom'}/>
 
             </div>
             <div className="w-full px-5 flex flex-col justify-between">
                 <div className="flex flex-col mt-5">
-                <div className="flex justify-end mb-4">
-                    <div
-                    className="mr-2 py-3 px-4 bg-blue-400 rounded-bl-3xl rounded-tl-3xl rounded-tr-xl text-white"
-                    >
-                    Welcome to group everyone !
-                    </div>
-                    <img
-                    src="https://source.unsplash.com/vpOeXr5wmR4/600x600"
-                    className="object-cover h-8 w-8 rounded-full"
-                    alt=""
-                    />
+                    <Message text={'Hello how is it going today?'} user={true}/>
+                    <Message text={'Lorem ipsum dolor sit amet consectetur adipisicing elit. Quaerat'} user={false} />
                 </div>
-                <div className="flex justify-start mb-4">
-                    <img
-                    src="https://source.unsplash.com/vpOeXr5wmR4/600x600"
-                    className="object-cover h-8 w-8 rounded-full"
-                    alt=""
-                    />
-                    <div
-                    className="ml-2 py-3 px-4 bg-gray-400 rounded-br-3xl rounded-tr-3xl rounded-tl-xl text-white"
-                    >
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Quaerat
-                    at praesentium, aut ullam delectus odio error sit rem. Architecto
-                    nulla doloribus laborum illo rem enim dolor odio saepe,
-                    consequatur quas?
-                    </div>
-                </div>
-                <div className="flex justify-end mb-4">
-                    <div>
-                    <div
-                        className="mr-2 py-3 px-4 bg-blue-400 rounded-bl-3xl rounded-tl-3xl rounded-tr-xl text-white"
-                    >
-                        Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                        Magnam, repudiandae.
-                    </div>
-
-                    <div
-                        className="mt-4 mr-2 py-3 px-4 bg-blue-400 rounded-bl-3xl rounded-tl-3xl rounded-tr-xl text-white"
-                    >
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                        Debitis, reiciendis!
-                    </div>
-                    </div>
-                    <img
-                    src="https://source.unsplash.com/vpOeXr5wmR4/600x600"
-                    className="object-cover h-8 w-8 rounded-full"
-                    alt=""
-                    />
-                </div>
-                <div className="flex justify-start mb-4">
-                    <img
-                    src="https://source.unsplash.com/vpOeXr5wmR4/600x600"
-                    className="object-cover h-8 w-8 rounded-full"
-                    alt=""
-                    />
-                    <div
-                    className="ml-2 py-3 px-4 bg-gray-400 rounded-br-3xl rounded-tr-3xl rounded-tl-xl text-white"
-                    >
-                    happy holiday guys!
-                    </div>
-                </div>
-                </div>
-                <div className="py-5">
-                <input
-                    className="w-full bg-gray-300 py-5 px-3 rounded-xl"
-                    type="text"
-                    placeholder="type your message here..."
-                />
+                <input className="w-full bg-gray-300 py-5 px-3 rounded-xl mb-20" type="text"/>
                 </div>
             </div>
             </div>
-            </div>
+          
        
   )
 }

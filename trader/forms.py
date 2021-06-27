@@ -1,7 +1,4 @@
-from django.forms import ModelForm
-from .models import Stock
+from django import forms
 
-class StockForm(ModelForm):
-    class Meta:
-        model = Stock
-        fields = '__all__'
+class StockForm(forms.Form):
+    ticker = forms.CharField(max_length=5)
