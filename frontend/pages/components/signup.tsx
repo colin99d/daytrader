@@ -12,6 +12,7 @@ type SignupState = {
 
 type SignupProps = {
     handleSignup: (e: any, data:SignupState) => void
+    handleClick: (arg: "login") => void
 }
 
 

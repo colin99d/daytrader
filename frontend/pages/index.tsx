@@ -20,6 +20,18 @@ type decision = {
   tradeDate: Date,
   created_at: Date
 }
+type login = {
+  password: string,
+  username: string,
+}
+
+type signup = {
+  password: string,
+  username: string,
+  first_name: string,
+  last_name: string,
+  email: string
+}
 
 type HomeState = {
   page: page,
@@ -39,16 +51,21 @@ class App extends Component<{}, HomeState> {
         stocks: null,
         decisions: null,
         error: "",
-        baseUrl: "http://192.168.1.72:8000",
-        loggedIn: localStorage.getItem('token') ? true : false,
+        baseUrl: "http://127.0.0.1:8000",
+        loggedIn: false,
         username: '',
     };
     this.handleClick = this.handleClick.bind(this);
+    this.handleLogin = this.handleLogout.bind(this);
+    this.handleSignup = this.handleSignup.bind(this);
+    this.handleLogout = this.handleClick.bind(this);
     this.getFetch = this.getFetch.bind(this);
   }
 
   getFetch(endpoint:string, state: "stocks" | "decisions") {
-    fetch(this.state.baseUrl + endpoint)
+    fetch(this.state.baseUrl + endpoint,  {
+      headers: {Authorization: `JWT ${localStorage.getItem('token')}`}
+    })
       .then(response => {
         if (response.status > 400) {
           return this.setState(() => {
@@ -65,28 +82,39 @@ class App extends Component<{}, HomeState> {
 
 
   componentDidMount() {
-    this.getFetch("/api/stocks/", "stocks");
-    this.getFetch("/api/decisions/", "decisions")
-    if (this.state.loggedIn) {
-      fetch('http://localhost:8000/core/current_user/', {
-        headers: {
-          Authorization: `JWT ${localStorage.getItem('token')}`
-        }
+    if (localStorage.getItem('token')) {
+      this.getFetch("/api/stocks/", "stocks");
+      this.getFetch("/api/decisions/", "decisions")
+      this.setState({loggedIn: true, page: "home"})
+      fetch(this.state.baseUrl + '/user/current_user/', {
+        headers: {Authorization: `JWT ${localStorage.getItem('token')}`}
       })
-        .then(res => res.json())
+        .then((response) => {
+          if (response.ok) {
+            return response.json()
+          } else {
+            this.handleLogout();
+            throw new Error('Something went wrong');
+          }
+        })
         .then(json => {
-          this.setState({ username: json.username });
-        });
+          this.setState({ username: json.username })
+        
+        })
+        .catch(error => {
+          console.log(error)
+        })
+    } else {
+      this.setState({loggedIn: false})
     }
+
   }
 
-  handleLogin = (e, data) => {
+  handleLogin = (e, data: login) => {
     e.preventDefault();
-    fetch('http://localhost:8000/token-auth/', {
+    fetch(this.state.baseUrl + '/token-auth/', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)
     })
       .then(res => res.json())
@@ -94,18 +122,19 @@ class App extends Component<{}, HomeState> {
         localStorage.setItem('token', json.token);
         this.setState({
           loggedIn: true,
-          username: json.user.username
+          username: json.user.username,
+          page: "home"
         });
       });
+      this.getFetch("/api/stocks/", "stocks");
+      this.getFetch("/api/decisions/", "decisions")
   };
 
-  handleSignup(e, data) {
+  handleSignup(e, data: signup) {
     e.preventDefault();
-    fetch('http://localhost:8000/user/users/', {
+    fetch(this.state.baseUrl + '/user/users/', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)
     })
       .then(res => res.json())
@@ -120,7 +149,7 @@ class App extends Component<{}, HomeState> {
 
   handleLogout() {
     localStorage.removeItem('token');
-    this.setState({ loggedIn: false, username: '' });
+    this.setState({ loggedIn: false, username: '', page: "login" });
   };
 
   render() {
@@ -131,16 +160,16 @@ class App extends Component<{}, HomeState> {
       page = <Table decisions={this.state.decisions}/>;
     } else if (this.state.page == "chat" && this.state.loggedIn) {
       page = <Chat />
-    } else if (this.state.page == "login") {
-      page = <Login handleLogin={this.handleLogin}/>
-    } else if (this.state.page == "signup") {
-      page = <Signup handleSignup={this.handleSignup}/>
+    } else if (this.state.page == "login" && !this.state.loggedIn) {
+      page = <Login handleLogin={this.handleLogin} handleClick={this.handleClick}/>
+    } else if (this.state.page == "signup" && !this.state.loggedIn) {
+      page = <Signup handleSignup={this.handleSignup} handleClick={this.handleClick}/>
     } else {
       page = <Error />
     }
     return (
       <div className="h-screen w-screen">
-        <Header handleClick={this.handleClick} page={this.state.page} />
+        <Header handleClick={this.handleClick} page={this.state.page} username={this.state.username} handleLogout={this.handleLogout}/>
         <div className="bg-gray-200 h-full w-full">
           {page}
         </div>
