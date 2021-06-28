@@ -6,8 +6,9 @@ type LoginState = {
 }
 
 type LoginProps = {
-    handleLogin: (e: any, data:LoginState) => void
-    handleClick: (arg: "signup") => void
+    handleLogin: (e: any, data:LoginState) => void,
+    handleClick: (arg: "signup") => void,
+    baseUrl: string
 }
 
 

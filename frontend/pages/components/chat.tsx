@@ -2,21 +2,18 @@ import React, { Component } from "react";
 
 type ForumProps = {
     text: string,
+    changeRoom: (newRoom: string) => void,
   }
 
 class Forum extends Component<ForumProps, {}> {
 
     render() {
       return (
-        <div className="flex flex-row py-4 px-2 items-center border-b-2">
-        <div className="w-1/4">
-            <img src="https://source.unsplash.com/otT2199XwI8/600x600" className="object-cover h-12 w-12 rounded-full" alt=""/>
-        </div>
-        <div className="w-full">
-            <div className="text-lg font-semibold">Everest Trip 2021</div>
-            <span className="text-gray-500">Hi Sam, Welcome</span>
-        </div>
-        
+        <div className="flex flex-row py-4 px-2 items-center border-b-2" onClick={() => this.props.changeRoom(this.props.text)}>
+          <div className="w-full">
+              <div className="text-lg font-semibold">{this.props.text}</div>
+              <span className="text-gray-500"></span>
+          </div>
         </div>
   )
 }
@@ -43,48 +40,137 @@ class Message extends Component<MessageProps, {}> {
 }
 }
 
+type topic = {
+  id: number,
+  name: string,
+  created_at: Date,
+}
+
 type ChatState = {
-    roomName: string
+    roomName: string,
+    activeRoom: string,
+    messages: string[],
+    topics: topic[],
+    message: string,
+    error: string
+}
+
+type ChatProps = {
+  baseUrl: string
 }
 
 
-class Chat extends Component<{}, ChatState> {
+class Chat extends Component<ChatProps, ChatState> {
     constructor(props: any) {
         super(props);
         this.state = {
-            roomName: ''
+            roomName: '',
+            activeRoom: '',
+            messages: [],
+            topics: [],
+            message: '',
+            error: ''
         };
         this.handleChange = this.handleChange.bind(this);
+        this.changeRoom = this.changeRoom.bind(this);
       }
 
-    handleChange(e:any, formKey: "roomName") {this.setState({...this.state, [formKey]: e.target.value})}
+    handleChange(e:any, formKey: "roomName" | "message") {this.setState({...this.state, [formKey]: e.target.value})}
+
+    changeRoom(newRoom:string) {
+      this.setState({activeRoom: newRoom})
+      this.getFetch("/api/topics/", "topics");
+      let chatSocket = new WebSocket('ws://'+ this.props.baseUrl.replace("http://","")+ '/ws/chat/'+newRoom+'/');
+      chatSocket.onmessage = function(e) {
+        
+        const data = JSON.parse(e.data);
+        const messages = this.state.messages;
+        messages.push(data.message);
+        this.setState({messages:messages})
+        console.log(e.data)
+        
+      }.bind(this)
+
+    chatSocket.onclose = function(e) {
+      console.error('Chat socket closed unexpectedly');
+    };
+
+    document.querySelector("#submitButton").addEventListener("click", function() {
+      let inputValue:string = (document.querySelector("#messageValue") as HTMLInputElement).value
+      chatSocket.send(JSON.stringify({
+        'message': inputValue
+      })
+    );
+    }
+    )
+    this.setState({message: ""})
+  }
+
+    handleClick() {  //remove soon
+      let url = this.props.baseUrl + "/chat/";
+      let data  = new FormData();
+      data.append('text', this.state.roomName)
+      fetch(url, {method: 'post',body: data,})
+      .then(response => response.json())
+      //.then(data => {this.setState({data: data, tickerDisplay: ticker})})
+    }
+
+    getFetch(endpoint:string, state: "messages" | "topics") {
+      fetch(this.props.baseUrl + endpoint,  {
+        headers: {Authorization: `JWT ${localStorage.getItem('token')}`}
+      })
+        .then(response => {
+          if (response.status > 400) {
+            return this.setState(() => {
+              return { error: "Something went wrong!" };
+            });
+          }
+          return response.json();
+        })
+        .then((data: string[]) => this.setState({...this.state, [state]: data})
+        );
+    }
+
+    componentDidMount() {
+      this.getFetch("/api/topics/", "topics")
+    }
 
     render() {
+      let messages = []
+      this.state.messages  ? this.state.messages.forEach(item =>
+        messages.push(<Message text={item} user={true}/>)
+      ) : null
+      
       return (
         <div className="mx-auto shadow-lg rounded-lg mt-1 h-full">
             <div className="flex flex-row justify-between bg-white h-full">
             <div className="flex flex-col w-2/5 border-r-2 overflow-y-auto">
                 <div className="border-b-2 py-4 px-2">
                 <input value={this.state.roomName} onChange={(e) => {this.handleChange(e, "roomName")}} type="text" placeholder="search chatting" className="py-2 px-2 border-2 border-gray-200 rounded-2xl w-full"/>
-                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
                 </div>
-
-                <Forum text={'ur mom'}/>
-
+                {this.state.topics  ? this.state.topics.map(item =>
+                  <Forum text={item.name} key={item.id} changeRoom={this.changeRoom}/>
+                ) : null}
+              
             </div>
             <div className="w-full px-5 flex flex-col justify-between">
                 <div className="flex flex-col mt-5">
-                    <Message text={'Hello how is it going today?'} user={true}/>
-                    <Message text={'Lorem ipsum dolor sit amet consectetur adipisicing elit. Quaerat'} user={false} />
+                    {messages}
                 </div>
-                <input className="w-full bg-gray-300 py-5 px-3 rounded-xl mb-20" type="text"/>
+                <div className={"flex mb-12 " + (this.state.activeRoom ? "" : "hidden")}>
+                  <input value={this.state.message} onChange={(e) => {this.handleChange(e, "message")}} className="w-full bg-gray-300 py-5 px-3 rounded-xl  flex-1" type="text" id="messageValue"/>
+                  <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" id="submitButton">Submit</button>
+                </div>
                 </div>
             </div>
             </div>
-          
-       
   )
 }
 }
 
 export default Chat;
+
+
+//{this.state.messages ? this.state.messages.map((item, idx) => {
+//  <Message text={item} user={true} key={idx}/>
+//}):null}

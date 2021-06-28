@@ -83,9 +83,6 @@ class App extends Component<{}, HomeState> {
 
   componentDidMount() {
     if (localStorage.getItem('token')) {
-      this.getFetch("/api/stocks/", "stocks");
-      this.getFetch("/api/decisions/", "decisions")
-      this.setState({loggedIn: true, page: "home"})
       fetch(this.state.baseUrl + '/user/current_user/', {
         headers: {Authorization: `JWT ${localStorage.getItem('token')}`}
       })
@@ -99,7 +96,9 @@ class App extends Component<{}, HomeState> {
         })
         .then(json => {
           this.setState({ username: json.username })
-        
+          this.getFetch("/api/stocks/", "stocks");
+          this.getFetch("/api/decisions/", "decisions")
+          this.setState({loggedIn: true, page: "home"})
         })
         .catch(error => {
           console.log(error)
@@ -171,9 +170,9 @@ class App extends Component<{}, HomeState> {
     } else if (this.state.page == "table" && this.state.loggedIn) {
       viewPage = <Table decisions={this.state.decisions}/>;
     } else if (this.state.page == "chat" && this.state.loggedIn) {
-      viewPage = <Chat />
+      viewPage = <Chat baseUrl={this.state.baseUrl}/>
     } else if (this.state.page == "login" && !this.state.loggedIn) {
-      viewPage = <Login handleLogin={this.handleLogin} handleClick={this.handleClick}/>
+      viewPage = <Login handleLogin={this.handleLogin} handleClick={this.handleClick} baseUrl={this.state.baseUrl}/>
     } else if (this.state.page == "signup" && !this.state.loggedIn) {
       viewPage = <Signup handleSignup={this.handleSignup} handleClick={this.handleClick}/>
     } else {

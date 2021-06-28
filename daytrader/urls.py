@@ -21,5 +21,6 @@ urlpatterns = [
     path('token-auth/', obtain_jwt_token),
     path('admin/', admin.site.urls),
     path('',include('trader.urls')),
-    path('user/', include('user.urls'))
+    path('user/', include('user.urls')),
+    path('', include('chat.urls'))
 ]

@@ -34,18 +34,28 @@ ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(',')
 
 # Application definition
 
-INSTALLED_APPS = [
+DJANGO_DEFAULTS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
+]
+
+MY_APPS = [
     'trader',
     'chat',
     'user',
 ]
+THIRD_PARTY_APPS = [
+    'rest_framework',
+    'channels',
+]
+
+INSTALLED_APPS = DJANGO_DEFAULTS + MY_APPS + THIRD_PARTY_APPS
+
+
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
@@ -174,3 +184,14 @@ EMAIL_USE_TLS = True
 CORS_ORIGIN_ALLOW_ALL = False
 
 CORS_ORIGIN_WHITELIST = env("CORS_WHITELIST").split(',')
+
+ASGI_APPLICATION = 'daytrader.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [env('REDIS_BROKER_URL')],
+        },
+    },
+}
