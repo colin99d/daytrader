@@ -54,13 +54,14 @@ THIRD_PARTY_APPS = [
 ]
 
 INSTALLED_APPS = DJANGO_DEFAULTS + MY_APPS + THIRD_PARTY_APPS
-
-
-
-REST_FRAMEWORK = {
+"""
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
     ),
+"""
+
+REST_FRAMEWORK = {
+
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),

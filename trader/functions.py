@@ -42,7 +42,7 @@ def valid_ticker(symbol):
 def today_trade():
     from .models import Algorithm, Stock, Decision
     last = last_date(timezone.now())
-    if last not in [x.tradeDate.date() for x in Decision.objects.all()]:
+    if last not in [x.tradeDate for x in Decision.objects.all()]:
         symbols = [x.ticker for x in Stock.objects.all()]
         data = get_data(symbols)
         ticker, open, conf, tradeDate = get_pick(data, symbols)

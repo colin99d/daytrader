@@ -12,9 +12,14 @@ from django.urls import reverse
 from datetime import timedelta
 from datetime import datetime
 from bs4 import BeautifulSoup
+import requests, random, json
 from django.core import mail
 from datetime import time
-import requests, random
+
+from rest_framework.test import force_authenticate
+from rest_framework.test import APIRequestFactory
+from .views import StockView
+
 
 tickers = ["TSLA", "AAPL", "AMZN", "GME", "F"]
 
@@ -134,21 +139,38 @@ class HelpersTestCase(TestCase):
 
 class APITests(APITestCase):
 
+    def setUp(self):
+        self.user = User.objects.create_user('test1','test@email.com', 'qwe123qwe')
+
+    def make_request(self, factory, url, data, view):
+        request = factory.post(url,{'ticker': data}, format='json')
+        force_authenticate(request, user=self.user)
+        return view(request).render()
+
     def test_API_stocks_get(self):
         """Test that the stocks API works with GET requests"""
         Stock.objects.create(ticker="T")
         Stock.objects.create(ticker="CANO")
         url = reverse('stocks-list')
-        response = self.client.get(url)
-        tickers = [x['ticker'] for x in response.json()]
+        factory = APIRequestFactory()
+        view = StockView.as_view({'get': 'list'})
+        request = factory.get(url)
+        force_authenticate(request, user=self.user)
+        response = view(request)
+        response.render()
+
+        tickers = [x['ticker'] for x in json.loads(response.content)]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue('T' in tickers and 'CANO' in tickers)
 
     def test_API_stocks_post(self):
         """Test that the stocks API works with POST requests"""
         url = reverse('stocks-list')
+        factory = APIRequestFactory()
+        view = StockView.as_view({'post': 'create'})
+        
         self.tickers = ["AAPL","TSLA","XYZZY","ZZZ","IWV","AMZN","NARP","WEEN","AAPL",""] 
-        responses = [self.client.post(url, {'ticker': x}, format='json').status_code for x in self.tickers]
+        responses = [self.make_request(factory, url, x, view).status_code for x in self.tickers]
         h201 = status.HTTP_201_CREATED
         h400 = status.HTTP_400_BAD_REQUEST
         h406 = status.HTTP_406_NOT_ACCEPTABLE
