@@ -50,7 +50,7 @@ def today_trade():
         try:
             algo = Algorithm.objects.get(pk=1)
         except:
-            algo = Algorithm.objects.create(name="First Algo")
+            algo = Algorithm.objects.create(name="First Algo", public=True)
         Decision.objects.create(stock=stock,algorithm=algo,openPrice=open,confidence=conf, tradeDate=tradeDate)
 
 def get_data(symbols):

@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from .templatetags.filter import growth
 from rest_framework import status
 from django.utils import timezone
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from django.urls import reverse
 from datetime import timedelta
 from datetime import datetime
@@ -24,7 +24,7 @@ from .views import StockView
 tickers = ["TSLA", "AAPL", "AMZN", "GME", "F"]
 
 # Create your tests here.
-class AlgoTestCase(TestCase):
+class AlgoTestCase(TransactionTestCase):
     @classmethod
     def setUpClass(cls):
         super(AlgoTestCase, cls).setUpClass()
@@ -52,7 +52,7 @@ class AlgoTestCase(TestCase):
         self.assertEqual(round(self.pick.openPrice,2), round(yahooOpen,2))
 
 
-class ClosingTestCase(TestCase):
+class ClosingTestCase(TransactionTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -77,7 +77,7 @@ class ClosingTestCase(TestCase):
         """Test that closing price matches Yahoo's closing price if market is closed"""
 
 
-class EmailTestCase(TestCase):
+class EmailTestCase(TransactionTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -96,7 +96,7 @@ class EmailTestCase(TestCase):
         """Animals that can speak are correctly identified"""
 
 
-class HelpersTestCase(TestCase):
+class HelpersTestCase(TransactionTestCase):
 
     def test_view_home(self):
         """Tests that home provides a basic repsonse"""
@@ -142,8 +142,14 @@ class APITests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user('test1','test@email.com', 'qwe123qwe')
 
-    def make_request(self, factory, url, data, view):
-        request = factory.post(url,{'ticker': data}, format='json')
+    def make_request(self, method,  url, serView, data=None):
+        factory = APIRequestFactory()
+        view = serView.as_view({'post': 'create', 'get': 'list'})
+        if method == "GET":
+            request = factory.get(url, format='json')
+        elif method == "POST":
+            request = factory.post(url,data, format='json')
+        
         force_authenticate(request, user=self.user)
         return view(request).render()
 
@@ -152,13 +158,8 @@ class APITests(APITestCase):
         Stock.objects.create(ticker="T")
         Stock.objects.create(ticker="CANO")
         url = reverse('stocks-list')
-        factory = APIRequestFactory()
-        view = StockView.as_view({'get': 'list'})
-        request = factory.get(url)
-        force_authenticate(request, user=self.user)
-        response = view(request)
-        response.render()
-
+        response = self.make_request("GET",url, StockView)
+        print(json.loads(response.content))
         tickers = [x['ticker'] for x in json.loads(response.content)]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue('T' in tickers and 'CANO' in tickers)
@@ -166,18 +167,15 @@ class APITests(APITestCase):
     def test_API_stocks_post(self):
         """Test that the stocks API works with POST requests"""
         url = reverse('stocks-list')
-        factory = APIRequestFactory()
-        view = StockView.as_view({'post': 'create'})
-        
         self.tickers = ["AAPL","TSLA","XYZZY","ZZZ","IWV","AMZN","NARP","WEEN","AAPL",""] 
-        responses = [self.make_request(factory, url, x, view).status_code for x in self.tickers]
+        responses = [self.make_request("POST",url, StockView, {'ticker': x}).status_code for x in self.tickers]
         h201 = status.HTTP_201_CREATED
         h400 = status.HTTP_400_BAD_REQUEST
         h406 = status.HTTP_406_NOT_ACCEPTABLE
         self.assertEqual(responses, [h201,h201,h406,h406,h201,h201,h406,h406,h400,h400])
         self.assertEqual(Stock.objects.count(), 4)
 
-class ModelMethodTestCase(APITestCase):
+class ModelMethodTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -185,7 +183,7 @@ class ModelMethodTestCase(APITestCase):
         cls.ticker = "AAPL"
         cls.stock = Stock.objects.create(ticker=cls.ticker)
         cls.algoName = "A bitcoin daytrading algorithm"
-        cls.algo = Algorithm.objects.create(name=cls.algoName)
+        cls.algo = Algorithm.objects.create(name=cls.algoName, public=True)
 
     def test_stock_str(self):
         """Test that the stock str method returns the ticker"""

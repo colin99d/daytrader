@@ -3,12 +3,17 @@ from django.db import models
 # Create your models here.
 class Stock(models.Model):
     ticker = models.CharField(max_length=5, unique=True)
+    price = models.FloatField(blank=True, null=True)
+    last_updated = models.DateTimeField(blank=True, null=True)
+    created_at= models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.ticker
 
 class Algorithm(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    public = models.BooleanField()
+    created_at= models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
