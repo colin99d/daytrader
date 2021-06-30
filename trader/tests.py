@@ -1,5 +1,9 @@
 from .functions import today_trade, valid_ticker, get_closing, daily_email, last_date
 from daytrader.celery import begin_day, end_day, send_email
+from .views import StockView, AlgorithmView, DecisionView
+from django.test import TestCase, TransactionTestCase
+from rest_framework.test import force_authenticate
+from rest_framework.test import APIRequestFactory
 from .models import Algorithm, Decision, Stock
 from django.utils.timezone import make_aware
 from rest_framework.test import APITestCase
@@ -7,7 +11,6 @@ from django.contrib.auth.models import User
 from .templatetags.filter import growth
 from rest_framework import status
 from django.utils import timezone
-from django.test import TestCase, TransactionTestCase
 from django.urls import reverse
 from datetime import timedelta
 from datetime import datetime
@@ -16,9 +19,9 @@ import requests, random, json
 from django.core import mail
 from datetime import time
 
-from rest_framework.test import force_authenticate
-from rest_framework.test import APIRequestFactory
-from .views import StockView
+
+
+
 
 
 tickers = ["TSLA", "AAPL", "AMZN", "GME", "F"]
@@ -153,8 +156,8 @@ class APITests(APITestCase):
         force_authenticate(request, user=self.user)
         return view(request).render()
 
-    def test_API_stocks_get(self):
-        """Test that the stocks API works with GET requests"""
+    def test_API_stock_get(self):
+        """Test that the stock API works with GET requests"""
         Stock.objects.create(ticker="T")
         Stock.objects.create(ticker="CANO")
         url = reverse('stocks-list')
@@ -164,8 +167,8 @@ class APITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue('T' in tickers and 'CANO' in tickers)
 
-    def test_API_stocks_post(self):
-        """Test that the stocks API works with POST requests"""
+    def test_API_stock_post(self):
+        """Test that the stock API works with POST requests"""
         url = reverse('stocks-list')
         self.tickers = ["AAPL","TSLA","XYZZY","ZZZ","IWV","AMZN","NARP","WEEN","AAPL",""] 
         responses = [self.make_request("POST",url, StockView, {'ticker': x}).status_code for x in self.tickers]
@@ -174,6 +177,29 @@ class APITests(APITestCase):
         h406 = status.HTTP_406_NOT_ACCEPTABLE
         self.assertEqual(responses, [h201,h201,h406,h406,h201,h201,h406,h406,h400,h400])
         self.assertEqual(Stock.objects.count(), 4)
+
+    def test_API_algorithm_get(self):
+        """Test that the algorithm API works with GET requests"""
+        Algorithm.objects.create(name="Buy low sell high", public=True)
+        Algorithm.objects.create(name="Buy high sell low", public=False)
+        url = reverse('algorithms-list')
+        response = self.make_request("GET",url, AlgorithmView)
+        print(json.loads(response.content))
+        names = [x['name'] for x in json.loads(response.content)]
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue("Buy low sell high" in names and "Buy high sell low" in names)
+
+    def test_API_algorithm_post(self):
+        """Test that the algorithm API works with POST requests"""
+        url = reverse('stocks-list')
+        names = [("This is a new algorithm",True),("",False)] 
+        responses = [self.make_request("POST",url, AlgorithmView, {'name':x[0], 'public':x[1]}).status_code for x in names]
+        print(responses)
+        h201 = status.HTTP_201_CREATED
+        h400 = status.HTTP_400_BAD_REQUEST
+        h406 = status.HTTP_406_NOT_ACCEPTABLE
+        self.assertEqual(responses, [h201,h400])
+        self.assertEqual(Algorithm.objects.count(), 1)
 
 class ModelMethodTestCase(TestCase):
 
