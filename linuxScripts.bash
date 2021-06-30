@@ -12,7 +12,7 @@ EOF
 if [[ $1 == "runserver" ]]
 then
     pkill screen
-    newPhrase='baseUrl:"http://192.168.1.72:8000",'
+    newPhrase='baseUrl:"http:\/\/192.168.1.72:8000",'
     sed -i 's/baseUrl:.*/'"$newPhrase"'/g' frontend/pages/index.tsx
     pip install -r requirements.txt
     python3 manage.py makemigrations
