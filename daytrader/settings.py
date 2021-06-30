@@ -29,7 +29,7 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(',')
+ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 
 
 # Application definition
@@ -184,7 +184,7 @@ EMAIL_USE_TLS = True
 
 CORS_ORIGIN_ALLOW_ALL = False
 
-CORS_ORIGIN_WHITELIST = env("CORS_WHITELIST").split(',')
+CORS_ORIGIN_WHITELIST = env("CORS_WHITELIST")
 
 ASGI_APPLICATION = 'daytrader.asgi.application'
 
