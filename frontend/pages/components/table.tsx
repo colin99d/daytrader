@@ -52,7 +52,7 @@ class Table extends Component<TableProps, {}> {
                                 
                                 {this.props.decisions ? this.props.decisions.map((item:decision )=> 
                                     <tr key={item.id}>
-                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{new Date(item.tradeDate).toLocaleDateString("en-US")}</td>
+                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.tradeDate}</td>
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.stock.ticker}</td>
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">${this.round(item.openPrice,3)}</td>
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">${this.round(item.closingPrice,3)}</td>
