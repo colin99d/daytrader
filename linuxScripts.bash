@@ -16,7 +16,8 @@ then
     pip install -r requirements.txt
     python3 manage.py makemigrations
     python3 manage.py migrate
-    python3 manage.py test; then 
+    python3 manage.py test
+    if [ $? = 0 ]; then
         screen -S DjangoAPI -d -m python3 manage.py runserver 192.168.1.72:8000
         screen -S Next -d -m bash -c "npm run build --prefix frontend; npm run start --prefix frontend"
         screen -S cWorker -d -m celery -A daytrader worker -l info
@@ -26,9 +27,9 @@ then
         echo "Tests failed, fix errors and restart server"
     fi
 
-elif [[ $1 == "collectstatic" ]]
+elif [[ $1 == "help" ]]
 then
-    echo "Feature not implemented"
+    showHelp
 else
     echo "Please select a command to run"
 fi
