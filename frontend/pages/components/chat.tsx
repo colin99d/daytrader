@@ -78,9 +78,10 @@ class Chat extends Component<ChatProps, ChatState> {
     handleChange(e:any, formKey: "roomName" | "message") {this.setState({...this.state, [formKey]: e.target.value})}
 
     changeRoom(newRoom:string) {
+      
       this.setState({activeRoom: newRoom})
       this.getFetch("/api/topics/", "topics");
-      let chatSocket = new WebSocket('ws://'+ this.props.baseUrl.replace("http://","")+ '/ws/chat/'+newRoom+'/');
+      let chatSocket = new WebSocket('ws://'+ this.props.baseUrl.replace("http://","")+ '/ws/chat/'+newRoom+'/'+"?token="+localStorage.getItem('token'));
       chatSocket.onmessage = function(e) {
         
         const data = JSON.parse(e.data);
@@ -93,27 +94,27 @@ class Chat extends Component<ChatProps, ChatState> {
 
     chatSocket.onclose = function(e) {
       console.error('Chat socket closed unexpectedly');
+      let baseUrl = this.props.baseUrl;
+      setTimeout(function() {
+        let chatSocket = new WebSocket('ws://'+ baseUrl.replace("http://","")+ '/ws/chat/'+newRoom+'/'+"?token="+localStorage.getItem('token'));
+      }, 1000);
+    }.bind(this)
+
+    chatSocket.onerror = function(err: any) {
+      console.error('Socket encountered error: ', err.message, 'Closing socket');
+      chatSocket.close();
     };
 
     document.querySelector("#submitButton").addEventListener("click", function() {
       let inputValue:string = (document.querySelector("#messageValue") as HTMLInputElement).value
-      chatSocket.send(JSON.stringify({
-        'message': inputValue
-      })
-    );
+      console.log(inputValue)
+      if (inputValue != "") {
+        chatSocket.send(JSON.stringify({'message': inputValue}));
+      }
     }
     )
-    this.setState({message: ""})
   }
 
-    handleClick() {  //remove soon
-      let url = this.props.baseUrl + "/chat/";
-      let data  = new FormData();
-      data.append('text', this.state.roomName)
-      fetch(url, {method: 'post',body: data,})
-      .then(response => response.json())
-      //.then(data => {this.setState({data: data, tickerDisplay: ticker})})
-    }
 
     getFetch(endpoint:string, state: "messages" | "topics") {
       fetch(this.props.baseUrl + endpoint,  {
@@ -137,8 +138,8 @@ class Chat extends Component<ChatProps, ChatState> {
 
     render() {
       let messages = []
-      this.state.messages  ? this.state.messages.forEach(item =>
-        messages.push(<Message text={item} user={true}/>)
+      this.state.messages  ? this.state.messages.forEach((item, index) =>
+        messages.push(<Message text={item} user={true} key={index}/>)
       ) : null
       
       return (

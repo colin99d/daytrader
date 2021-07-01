@@ -84,7 +84,7 @@ class App extends Component<{}, HomeState> {
   componentDidMount() {
     if (localStorage.getItem('token')) {
       fetch(this.state.baseUrl + '/user/current_user/', {
-        headers: {Authorization: `JWT ${localStorage.getItem('token')}`}
+        headers: {Authorization: `Token ${localStorage.getItem('token')}`}
       })
         .then((response) => {
           if (response.ok) {
@@ -111,7 +111,7 @@ class App extends Component<{}, HomeState> {
 
   handleLogin = (e, data: login) => {
     e.preventDefault();
-    fetch(this.state.baseUrl + '/token-auth/', {
+    fetch(this.state.baseUrl + '/api-token-auth/', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)
@@ -120,6 +120,7 @@ class App extends Component<{}, HomeState> {
       if (response.ok) {
         return response.json()
       } else {
+        this.setState({error: "Invalid password or username"})
         throw new Error('Invalid signup attempt');
       }
     })
@@ -172,7 +173,7 @@ class App extends Component<{}, HomeState> {
     } else if (this.state.page == "chat" && this.state.loggedIn) {
       viewPage = <Chat baseUrl={this.state.baseUrl}/>
     } else if (this.state.page == "login" && !this.state.loggedIn) {
-      viewPage = <Login handleLogin={this.handleLogin} handleClick={this.handleClick} baseUrl={this.state.baseUrl}/>
+      viewPage = <Login handleLogin={this.handleLogin} handleClick={this.handleClick} baseUrl={this.state.baseUrl} error={this.state.error}/>
     } else if (this.state.page == "signup" && !this.state.loggedIn) {
       viewPage = <Signup handleSignup={this.handleSignup} handleClick={this.handleClick}/>
     } else {
