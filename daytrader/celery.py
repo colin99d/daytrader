@@ -11,15 +11,20 @@ app.autodiscover_tasks()
 
 @app.task
 def begin_day():
-    today_trade()
+    from trader.models import Decision, Algorithm
     from django.contrib.auth.models import User
+    algo = Algorithm.objects.get_or_create(name="Z-score daytrader",public=True)
+    today_trade(algo[0])
     for item in User.objects.all():
         if item.email:
             daily_email(item)
+    return Decision.objects.all()
 
 @app.task
 def end_day():
+    from trader.models import Decision
     get_closing()
+    return Decision.objects.all()
 
 @app.task
 def send_email():

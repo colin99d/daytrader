@@ -1,4 +1,4 @@
-from .serializers import DecisionSerializer, StockSerializer, AlgorithmSerializer
+from .serializers import DecisionGetSerializer, DecisionSerializer, StockSerializer, AlgorithmSerializer
 from django.views.decorators.csrf import csrf_exempt
 from .functions import valid_ticker, get_cashflows
 from rest_framework.response import Response
@@ -32,12 +32,19 @@ class StockView(viewsets.ModelViewSet):
         return Response(response, status=sendStat)
 
 class DecisionView(viewsets.ModelViewSet):
-    serializer_class = DecisionSerializer
     queryset = Decision.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return DecisionGetSerializer
+        else:
+            return DecisionSerializer
 
 class AlgorithmView(viewsets.ModelViewSet):
     serializer_class = AlgorithmSerializer
     queryset = Algorithm.objects.all()
+
+
 
 @csrf_exempt
 def cashflows(request):

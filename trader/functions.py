@@ -39,18 +39,14 @@ def valid_ticker(symbol):
     ticker = re.search('Previous Close', response)
     return False if ticker.start() > 200000 else True
 
-def today_trade():
-    from .models import Algorithm, Stock, Decision
-    last = last_date(timezone.now())
-    if last not in [x.tradeDate for x in Decision.objects.all()]:
+def today_trade(algo):
+    from .models import Stock, Decision
+    last = last_date(timezone.now())[0]
+    if not Decision.objects.filter(tradeDate=last).exists():
         symbols = [x.ticker for x in Stock.objects.all()]
         data = get_data(symbols)
         ticker, open, conf, tradeDate = get_pick(data, symbols)
         stock = Stock.objects.get(ticker=ticker)
-        try:
-            algo = Algorithm.objects.get(pk=1)
-        except:
-            algo = Algorithm.objects.create(name="First Algo", public=True)
         Decision.objects.create(stock=stock,algorithm=algo,openPrice=open,confidence=conf, tradeDate=tradeDate)
 
 def get_data(symbols):
@@ -132,16 +128,16 @@ def get_pick(data, symbols):
 def get_closing():
     #This fails if closing is 
     from .models import Decision
-    stocks = Decision.objects.filter(closingPrice=None)
-    for stock in stocks:
-        ticker = stock.stock.ticker
-        tickDate = stock.tradeDate
+    decisions = Decision.objects.filter(closingPrice=None)
+    for decision in decisions:
+        ticker = decision.stock.ticker
+        tickDate = decision.tradeDate
         if timezone.now().date() > tickDate or timezone.now().time() > time(16,0,0):
-            endDate = stock.tradeDate + timedelta(days=1)
+            endDate = decision.tradeDate + timedelta(days=1)
             result = yf.Ticker(ticker).history(start=tickDate, end=endDate)
             closing = result["Close"].iloc[0]
-            setattr(stock, "closingPrice", closing)
-            stock.save()
+            setattr(decision, "closingPrice", closing)
+            decision.save()
 
 def get_cashflows(ticker):
     stock = yf.Ticker(ticker)

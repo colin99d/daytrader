@@ -4,6 +4,7 @@ from .views import StockView, AlgorithmView, DecisionView
 from django.test import TestCase, TransactionTestCase
 from rest_framework.test import force_authenticate
 from rest_framework.test import APIRequestFactory
+from django.test.utils import override_settings
 from .models import Algorithm, Decision, Stock
 from django.utils.timezone import make_aware
 from rest_framework.test import APITestCase
@@ -19,11 +20,6 @@ import requests, random, json
 from django.core import mail
 from datetime import time
 
-
-
-
-
-
 tickers = ["TSLA", "AAPL", "AMZN", "GME", "F"]
 
 # Create your tests here.
@@ -33,7 +29,8 @@ class AlgoTestCase(TransactionTestCase):
         super(AlgoTestCase, cls).setUpClass()
         for ticker in tickers:
             Stock.objects.create(ticker=ticker)
-        today_trade()
+        algo = Algorithm.objects.create(name="The test algo",public=True)
+        today_trade(algo)
         cls.pick = Decision.objects.get()
 
     def test_possible_ticker(self):
@@ -54,6 +51,15 @@ class AlgoTestCase(TransactionTestCase):
         yahooOpen = float(item.text)
         self.assertEqual(round(self.pick.openPrice,2), round(yahooOpen,2))
 
+    def test_no_second_pick(self):
+        """Tests that the today_trade function blocks two stock picks in one day"""
+        for ticker in tickers:
+            Stock.objects.create(ticker=ticker)
+        algo = Algorithm.objects.create(name="The test algo",public=True)
+        today_trade(algo)
+        self.assertEqual(Decision.objects.count(),1)
+        today_trade(algo)
+        self.assertEqual(Decision.objects.count(),1)
 
 class ClosingTestCase(TransactionTestCase):
 
@@ -62,7 +68,8 @@ class ClosingTestCase(TransactionTestCase):
         super(ClosingTestCase, cls).setUpClass()
         for ticker in tickers:
             Stock.objects.create(ticker=ticker)
-        today_trade()
+        algo = Algorithm.objects.create(name="The test algo",public=True)
+        today_trade(algo)
         get_closing()
         cls.pick = Decision.objects.get()
 
@@ -130,7 +137,8 @@ class HelpersTestCase(TransactionTestCase):
         for date in dates:
             x, y = last_date(date)
             results.append((x,y))
-        self.assertEqual(results, [((date1 - timedelta(days=1)).date(),True),((date2 - timedelta(days=2)).date(),True),(date3.date(),True),(date4.date(),False),((date5 - timedelta(days=1)).date(),True)])
+        self.assertEqual(results, [((date1 - timedelta(days=1)).date(),True),((date2 - timedelta(days=2)).date(),True),
+            (date3.date(),True),(date4.date(),False),((date5 - timedelta(days=1)).date(),True)])
 
     def test_growth_template_tag(self):
         """Test that the growth template tag returns the correct response"""
@@ -162,7 +170,6 @@ class APITests(APITestCase):
         Stock.objects.create(ticker="CANO")
         url = reverse('stocks-list')
         response = self.make_request("GET",url, StockView)
-        print(json.loads(response.content))
         tickers = [x['ticker'] for x in json.loads(response.content)]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue('T' in tickers and 'CANO' in tickers)
@@ -180,26 +187,52 @@ class APITests(APITestCase):
 
     def test_API_algorithm_get(self):
         """Test that the algorithm API works with GET requests"""
-        Algorithm.objects.create(name="Buy low sell high", public=True)
-        Algorithm.objects.create(name="Buy high sell low", public=False)
+        Algorithm.objects.create(name="Buy low sell high2", public=True)
+        Algorithm.objects.create(name="Buy high sell low2", public=False)
         url = reverse('algorithms-list')
         response = self.make_request("GET",url, AlgorithmView)
-        print(json.loads(response.content))
         names = [x['name'] for x in json.loads(response.content)]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue("Buy low sell high" in names and "Buy high sell low" in names)
+        self.assertTrue("Buy low sell high2" in names and "Buy high sell low2" in names)
 
     def test_API_algorithm_post(self):
         """Test that the algorithm API works with POST requests"""
         url = reverse('stocks-list')
         names = [("This is a new algorithm",True),("",False)] 
         responses = [self.make_request("POST",url, AlgorithmView, {'name':x[0], 'public':x[1]}).status_code for x in names]
-        print(responses)
         h201 = status.HTTP_201_CREATED
         h400 = status.HTTP_400_BAD_REQUEST
-        h406 = status.HTTP_406_NOT_ACCEPTABLE
         self.assertEqual(responses, [h201,h400])
         self.assertEqual(Algorithm.objects.count(), 1)
+
+    def test_API_decision_get(self):
+        """Test that the decision API works with GET requests"""
+        s1 = Stock.objects.create(ticker="CANO")
+        s2 = Stock.objects.create(ticker="CMAX")
+        a1 = Algorithm.objects.create(name="Buy low sell high", public=True)
+        a2 = Algorithm.objects.create(name="Buy high sell low", public=False)
+        Decision.objects.create(stock=s1, algorithm=a1, openPrice=27.25, confidence=87.32, tradeDate=timezone.now().date())
+        Decision.objects.create(stock=s2, algorithm=a2, openPrice=13.38, confidence=22.45, tradeDate=timezone.now().date())
+        url = reverse('decisions-list')
+        response = self.make_request("GET",url, DecisionView)
+        names = [x['stock']['ticker'] for x in json.loads(response.content)]
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue("CANO" in names and "CMAX" in names)
+
+    def test_API_decision_post(self):
+        """Test that the decision API works with POST requests"""
+        Stock.objects.create(ticker="CANO")
+        Stock.objects.create(ticker="CMAX")
+        Algorithm.objects.create(name="Buy low sell high", public=True)
+        Algorithm.objects.create(name="Buy high sell low", public=False)
+        url = reverse('decisions-list')
+        decisions = [{"stock": 1, "algorithm":1,"openPrice":13.24,"confidence":36.89,"tradeDate":timezone.now().date()},
+            {"stock": 2, "algorithm":2,"openPrice":22.24,"confidence":0,"tradeDate":timezone.now().date()}, {}] 
+        responses = [self.make_request("POST",url, AlgorithmView, x).status_code for x in decisions]
+        h201 = status.HTTP_201_CREATED
+        h400 = status.HTTP_400_BAD_REQUEST
+        self.assertEqual(responses, [h201,h201,h400])
+        self.assertEqual(Decision.objects.count(), 2)
 
 class ModelMethodTestCase(TestCase):
 
@@ -225,4 +258,40 @@ class ModelMethodTestCase(TestCase):
         self.decision = Decision.objects.create(stock=self.stock,algorithm=self.algo,openPrice=10,confidence=.2,tradeDate=self.tradeDate)
         self.assertEqual(str(self.stock) + ' on ' + str(self.tradeDate), self.decision.__str__())
 
-    
+
+class CeleryFeaturesTestCase(TestCase):
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
+    def test_begin_day(self):
+        """Test that the begin_day celery function adds a decision to the model and sends an email to the user"""
+        User.objects.create_user('testUser','test@gmail.com','secure49password')
+        for ticker in tickers:
+            Stock.objects.create(ticker=ticker)
+        decisions = begin_day.apply().get()
+        self.assertEqual(len(decisions),1)
+        self.assertTrue(decisions[0].openPrice > 0)
+        self.assertEqual(len(mail.outbox), 1)
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
+    def test_end_day(self):
+        """Test that the end_day celery function adds a closing price to all decisions without one"""
+        s1 = Stock.objects.create(ticker="IWV")
+        s2 = Stock.objects.create(ticker="TSLA")
+        s3 = Stock.objects.create(ticker="AMC")
+        a = Algorithm.objects.create(name="Basic algo", public=True)
+        Decision.objects.create(stock=s1,algorithm=a,openPrice=23.22,confidence=32.87,tradeDate=make_aware(datetime(2017, 10, 27, 12, 0)).date())
+        Decision.objects.create(stock=s2,algorithm=a,openPrice=23.22,confidence=32.87,tradeDate=make_aware(datetime(2018, 6, 8, 12, 0)).date())
+        Decision.objects.create(stock=s3,algorithm=a,openPrice=23.22,confidence=32.87,tradeDate=make_aware(datetime(2019, 12, 27, 12, 0)).date())
+        decisions = end_day.apply().get()
+        closings = [x.closingPrice for x in decisions]
+        for closing in closings:
+            self.assertTrue(closing > 0)
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
+    def test_email(self):
+        """Test that the send_email celery function sends an email to the user"""
+        User.objects.create_user('testUser','test@gmail.com','secure49password')
+        send_email.apply().get()
+        self.assertEqual(len(mail.outbox), 1)
+
+
