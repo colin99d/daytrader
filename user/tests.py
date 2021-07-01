@@ -1,6 +1,5 @@
-from rest_framework.test import RequestsClient
-from django.contrib.auth.models import User
 from django.test import TestCase
+from user.models import User
 
 
 class TestAuthentication(TestCase):
