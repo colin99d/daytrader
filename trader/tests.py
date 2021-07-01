@@ -221,14 +221,14 @@ class APITests(APITestCase):
 
     def test_API_decision_post(self):
         """Test that the decision API works with POST requests"""
-        Stock.objects.create(ticker="CANO")
-        Stock.objects.create(ticker="CMAX")
-        Algorithm.objects.create(name="Buy low sell high", public=True)
-        Algorithm.objects.create(name="Buy high sell low", public=False)
+        s1 = Stock.objects.create(ticker="CANO")
+        s2 = Stock.objects.create(ticker="CMAX")
+        a1 = Algorithm.objects.create(name="Buy low sell high", public=True)
+        a2 = Algorithm.objects.create(name="Buy high sell low", public=False)
         url = reverse('decisions-list')
-        decisions = [{"stock": 1, "algorithm":1,"openPrice":13.24,"confidence":36.89,"tradeDate":timezone.now().date()},
-            {"stock": 2, "algorithm":2,"openPrice":22.24,"confidence":0,"tradeDate":timezone.now().date()}, {}] 
-        responses = [self.make_request("POST",url, AlgorithmView, x).status_code for x in decisions]
+        decisions = [{"stock": s1.id, "algorithm":a1.id,"openPrice":13.24,"confidence":36.89,"tradeDate":timezone.now().date()},
+            {"stock": s2.id, "algorithm":a2.id,"openPrice":22.24,"confidence":0,"tradeDate":timezone.now().date()}, {}] 
+        responses = [self.make_request("POST",url, DecisionView, x).status_code for x in decisions]
         h201 = status.HTTP_201_CREATED
         h400 = status.HTTP_400_BAD_REQUEST
         self.assertEqual(responses, [h201,h201,h400])

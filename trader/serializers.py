@@ -19,8 +19,6 @@ class DecisionGetSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class DecisionSerializer(serializers.ModelSerializer):
-    stock = StockSerializer()
-    algorithm = AlgorithmSerializer()
     class Meta:
         model = Decision
         fields = '__all__'
