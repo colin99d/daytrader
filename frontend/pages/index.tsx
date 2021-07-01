@@ -38,7 +38,7 @@ type HomeState = {
   stocks: stock[],
   decisions: decision[],
   error: string,
-  baseUrl: string,
+  baseUrl:"http://192.168.1.72:8000",
   loggedIn: boolean,
   username: string,
 }
@@ -51,7 +51,7 @@ class App extends Component<{}, HomeState> {
         stocks: null,
         decisions: null,
         error: "",
-        baseUrl: "http://127.0.0.1:8000",
+        baseUrl:"http://192.168.1.72:8000",
         loggedIn: false,
         username: '',
     };
