@@ -8,7 +8,6 @@ from django.test.utils import override_settings
 from .models import Algorithm, Decision, Stock
 from django.utils.timezone import make_aware
 from rest_framework.test import APITestCase
-from django.contrib.auth.models import User
 from .templatetags.filter import growth
 from rest_framework import status
 from django.utils import timezone
@@ -18,6 +17,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import requests, random, json
 from django.core import mail
+from user.models import User
 from datetime import time
 
 tickers = ["TSLA", "AAPL", "AMZN", "GME", "F"]
