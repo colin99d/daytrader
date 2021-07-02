@@ -1,4 +1,4 @@
-from .functions import today_trade, valid_ticker, get_closing, daily_email, last_date
+from .functions.helpers import get_stock, valid_ticker, get_closing, daily_email, last_date
 from daytrader.celery import begin_day, end_day, send_email
 from .views import StockView, AlgorithmView, DecisionView
 from django.test import TestCase, TransactionTestCase
@@ -30,7 +30,7 @@ class AlgoTestCase(TransactionTestCase):
         for ticker in tickers:
             Stock.objects.create(ticker=ticker)
         algo = Algorithm.objects.create(name="The test algo",public=True)
-        today_trade(algo)
+        get_stock(algo)
         cls.pick = Decision.objects.get()
 
     def test_possible_ticker(self):
@@ -52,13 +52,13 @@ class AlgoTestCase(TransactionTestCase):
         self.assertEqual(round(self.pick.openPrice,2), round(yahooOpen,2))
 
     def test_no_second_pick(self):
-        """Tests that the today_trade function blocks two stock picks in one day"""
+        """Tests that the get_stock function blocks two stock picks in one day"""
         for ticker in tickers:
             Stock.objects.create(ticker=ticker)
         algo = Algorithm.objects.create(name="The test algo",public=True)
-        today_trade(algo)
+        get_stock(algo)
         self.assertEqual(Decision.objects.count(),1)
-        today_trade(algo)
+        get_stock(algo)
         self.assertEqual(Decision.objects.count(),1)
 
 class ClosingTestCase(TransactionTestCase):
@@ -69,7 +69,7 @@ class ClosingTestCase(TransactionTestCase):
         for ticker in tickers:
             Stock.objects.create(ticker=ticker)
         algo = Algorithm.objects.create(name="The test algo",public=True)
-        today_trade(algo)
+        get_stock(algo)
         get_closing()
         cls.pick = Decision.objects.get()
 
@@ -119,7 +119,7 @@ class HelpersTestCase(TransactionTestCase):
         truthVals = [valid_ticker(x) for x in self.tickers]
         self.assertEqual(truthVals, [True,True,False,False,True,True,False,False])
 
-    def test__view_get_cashflows(self):
+    def test_view_get_cashflows(self):
         """Ensures that the get_cashflow function response returns json"""
         response = self.client.post(reverse("cashflows"),{'ticker':'AAPL'}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)

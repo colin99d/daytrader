@@ -1,4 +1,4 @@
-from trader.functions import today_trade, get_closing, daily_email
+from trader.functions.helpers import get_stock, get_closing, daily_email
 from celery.schedules import crontab
 from celery import Celery
 import os
@@ -14,7 +14,7 @@ def begin_day():
     from trader.models import Decision, Algorithm
     from user.models import User
     algo = Algorithm.objects.get_or_create(name="Z-score daytrader",public=True)
-    today_trade(algo[0])
+    get_stock(algo[0])
     for item in User.objects.all():
         if item.email:
             daily_email(item)

@@ -23,7 +23,7 @@ class Decision(models.Model):
     algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE)
     openPrice = models.FloatField()
     closingPrice = models.FloatField(null=True, blank=True)
-    confidence = models.FloatField()
+    confidence = models.FloatField(null=True, blank=True)
     tradeDate= models.DateField()
     created_at= models.DateTimeField(auto_now_add=True)
 

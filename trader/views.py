@@ -1,6 +1,6 @@
 from .serializers import DecisionGetSerializer, DecisionSerializer, StockSerializer, AlgorithmSerializer
 from django.views.decorators.csrf import csrf_exempt
-from .functions import valid_ticker, get_cashflows
+from .functions.helpers import valid_ticker, get_cashflows
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 from django.http import JsonResponse
@@ -53,11 +53,4 @@ def cashflows(request):
         form.is_valid()
         content = form.cleaned_data['ticker']
         cashflows = get_cashflows(content.upper())
-        newCf = []
-        for key in cashflows:
-            newObj = {"id": key, "data": []}
-            for key2, value in cashflows[key].items():
-                date = key2.to_pydatetime().date().strftime("%m-%d-%Y")
-                newObj["data"].append({"x":date, "y":value})
-            newCf.append(newObj)
-        return JsonResponse(newCf, safe=False)
+        return JsonResponse(cashflows, safe=False)
