@@ -97,7 +97,9 @@ class App extends Component<{}, HomeState> {
           }
         })
         .then(json => {
-          this.setState({ username: json.username })
+          console.log("We just reran token")
+          console.log(json)
+          this.setState({username: json.username, userId:json.id})
           this.getFetch("/api/stocks/", "stocks");
           this.getFetch("/api/decisions/", "decisions")
           this.setState({loggedIn: true, page: "home"})
@@ -174,7 +176,7 @@ class App extends Component<{}, HomeState> {
     } else if (this.state.page == "table" && this.state.loggedIn) {
       viewPage = <Table decisions={this.state.decisions}/>;
     } else if (this.state.page == "chat" && this.state.loggedIn) {
-      viewPage = <Chat baseUrl={this.state.baseUrl}/>
+      viewPage = <Chat baseUrl={this.state.baseUrl} userId={this.state.userId}/>
     } else if (this.state.page == "login" && !this.state.loggedIn) {
       viewPage = <Login handleLogin={this.handleLogin} handleClick={this.handleClick} baseUrl={this.state.baseUrl} error={this.state.error}/>
     } else if (this.state.page == "signup" && !this.state.loggedIn) {
@@ -183,11 +185,9 @@ class App extends Component<{}, HomeState> {
       viewPage = <Error />
     }
     return (
-      <div className="h-screen w-screen">
+      <div className="absolute inset-0 bg-gray-200 pt-16">
         <Header handleClick={this.handleClick} page={this.state.page} username={this.state.username} handleLogout={this.handleLogout}/>
-        <div className="bg-gray-200 h-full w-full">
-          {viewPage}
-        </div>
+        {viewPage}
       </div>
     )
   }

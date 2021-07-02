@@ -21,14 +21,14 @@ class Forum extends Component<ForumProps, {}> {
 
 type MessageProps = {
     text: string,
-    user: boolean,
+    same: boolean,
   }
 
 class Message extends Component<MessageProps, {}> {
 
     render() {
-        let firstDiv = this.props.user ? "justify-end" : "justify-start"
-        let secondDiv = this.props.user ? "mr-2  bg-blue-400 rounded-bl-3xl rounded-tl-3xl rounded-tr-xl" : "ml-2 bg-gray-400 rounded-br-3xl rounded-tr-3xl rounded-tl-xl"
+        let firstDiv = this.props.same ? "justify-end" : "justify-start"
+        let secondDiv = this.props.same ? "mr-2  bg-blue-400 rounded-bl-3xl rounded-tl-3xl rounded-tr-xl" : "ml-2 bg-gray-400 rounded-br-3xl rounded-tr-3xl rounded-tl-xl"
       return (
         
         <div className={"flex mb-4 " + firstDiv}>
@@ -40,27 +40,38 @@ class Message extends Component<MessageProps, {}> {
 }
 }
 
+
 type topic = {
   id: number,
   name: string,
   created_at: Date,
 }
 
+type message = {
+  text: string,
+  same: boolean,
+  topic: topic,
+  user: number,
+}
+
 type ChatState = {
     roomName: string,
     activeRoom: string,
-    messages: string[],
+    messages: message[],
     topics: topic[],
     message: string,
     error: string
 }
 
 type ChatProps = {
-  baseUrl: string
+  baseUrl: string,
+  userId: number
 }
 
 
 class Chat extends Component<ChatProps, ChatState> {
+  //private messageEnd = React.createRef<HTMLDivElement>();
+  private messageEnd: any = React.createRef();
     constructor(props: any) {
         super(props);
         this.state = {
@@ -91,7 +102,7 @@ class Chat extends Component<ChatProps, ChatState> {
         
         const data = JSON.parse(e.data);
         const messages = this.state.messages;
-        messages.push(data.message);
+        messages.push({text:data.message,user:data.userId,topic:data.topic});
         this.setState({messages:messages})
         console.log(e.data)
         
@@ -110,6 +121,10 @@ class Chat extends Component<ChatProps, ChatState> {
       this.chatSocket.close();
     };
   }
+
+  gotoBottom(selector:string){
+    document.querySelector(selector).scrollIntoView ({ behavior: "smooth" });
+ }
 
   handleSubmit() {
     if (this.state.message) {
@@ -136,12 +151,19 @@ class Chat extends Component<ChatProps, ChatState> {
 
     componentDidMount() {
       this.getFetch("/api/topics/", "topics")
+      this.getFetch("/api/messages/", "messages")
+    }
+
+    componentDidUpdate() {
+      console.log(this.state.roomName)
+      this.gotoBottom(".messageContainer")
+        
     }
 
     render() {
       let messages = []
-      this.state.messages  ? this.state.messages.forEach((item, index) =>
-        messages.push(<Message text={item} user={true} key={index}/>)
+      this.state.messages  ? this.state.messages.filter(item => item.topic.name == this.state.activeRoom).forEach((item, index) =>
+        messages.push(<Message text={item.text} same={item.user==this.props.userId} key={index}/>)
       ) : null
       
       return (
@@ -157,10 +179,11 @@ class Chat extends Component<ChatProps, ChatState> {
               
             </div>
             <div className="w-full px-5 flex flex-col justify-between">
-                <div className="flex flex-col mt-5">
+                <div className="flex flex-col mt-5 overflow-scroll ">
                     {messages}
+                    <div className="messageContainer"></div>
                 </div>
-                <div className={"flex mb-12 " + (this.state.activeRoom ? "" : "hidden")}>
+                <div className={"flex mb-4 " + (this.state.activeRoom ? "" : "hidden")}>
                   <input value={this.state.message} onChange={(e) => {this.handleChange(e, "message")}} className="w-full bg-gray-300 py-5 px-3 rounded-xl  flex-1" type="text" id="messageValue"/>
                   <button onClick={this.handleSubmit}className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
                 </div>
@@ -172,8 +195,3 @@ class Chat extends Component<ChatProps, ChatState> {
 }
 
 export default Chat;
-
-
-//{this.state.messages ? this.state.messages.map((item, idx) => {
-//  <Message text={item} user={true} key={idx}/>
-//}):null}

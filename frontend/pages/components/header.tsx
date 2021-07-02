@@ -11,9 +11,9 @@ class Header extends Component<HeaderProps, {}> {
 
     render() {
       return (
-    <nav className="bg-white shadow">
+    <nav className="bg-white shadow h-16 -mt-16">
     <div className="max-w-7xl mx-4 px-2">
-      <div className="relative flex justify-between h-16">
+      <div className="relative flex justify-between">
         <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
           <button type="button" className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-controls="mobile-menu" aria-expanded="false">
             <span className="sr-only">Open main menu</span>
