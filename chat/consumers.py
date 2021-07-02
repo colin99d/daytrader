@@ -1,9 +1,8 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
+from django.contrib.auth.models import AnonymousUser
+from rest_framework.authtoken.models import Token
 from channels.db import database_sync_to_async
 from .models import Topic, Message
-import json
-
-
 import json
 
 
@@ -11,7 +10,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = 'chat_%s' % self.room_name
-        self.user = self.scope["user"]
+        self.token = self.scope['query_string'].decode("utf-8").split("=")[1]
+        self.user = await self.get_user()
 
         # Join room group
         await self.channel_layer.group_add(
@@ -40,23 +40,32 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'type': 'chat_message',
                 'message': message,
                 'topic': self.room_name,
-                'user': self.user.name
+                'user': self.user.username
             }
         )
 
     # Receive message from room group
     async def chat_message(self, event):
         message = event['message']
+        
+        await self.save_message(message, self.room_name, self.user)
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
             'message': message,
             'topic': self.room_name,
-            'user': self.user.name
+            'user': self.user.username
         }))
 
     @database_sync_to_async
-    def save_message(self, message, topic):
+    def save_message(self, message, topic, user):
         topic = Topic.objects.get(name=topic)
-        Message.objects.create(text=message,topic=topic,user=self.user)
+        Message.objects.create(text=message,topic=topic,user=user)
+
+    @database_sync_to_async
+    def get_user(self):
+        try:
+            return Token.objects.get(key=self.token).user
+        except Token.DoesNotExist:
+            return AnonymousUser()
 

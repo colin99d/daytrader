@@ -38,7 +38,7 @@ type HomeState = {
   stocks: stock[],
   decisions: decision[],
   error: string,
-  baseUrl:"http://192.168.1.72:8000",
+  baseUrl:"http://127.0.0.1:8000",
   loggedIn: boolean,
   username: string,
 }
@@ -51,7 +51,7 @@ class App extends Component<{}, HomeState> {
         stocks: null,
         decisions: null,
         error: "",
-        baseUrl:"http://192.168.1.72:8000",
+        baseUrl:"http://127.0.0.1:8000",
         loggedIn: false,
         username: '',
     };
@@ -64,7 +64,7 @@ class App extends Component<{}, HomeState> {
 
   getFetch(endpoint:string, state: "stocks" | "decisions") {
     fetch(this.state.baseUrl + endpoint,  {
-      headers: {Authorization: `JWT ${localStorage.getItem('token')}`}
+      headers: {Authorization: `Token ${localStorage.getItem('token')}`}
     })
       .then(response => {
         if (response.status > 400) {
@@ -128,7 +128,7 @@ class App extends Component<{}, HomeState> {
         localStorage.setItem('token', json.token);
         this.setState({
           loggedIn: true,
-          username: json.user.username,
+          username: json.username,
           page: "home"
         }, () => {
           this.getFetch("/api/stocks/", "stocks");

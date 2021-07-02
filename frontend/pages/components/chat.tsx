@@ -118,7 +118,7 @@ class Chat extends Component<ChatProps, ChatState> {
 
     getFetch(endpoint:string, state: "messages" | "topics") {
       fetch(this.props.baseUrl + endpoint,  {
-        headers: {Authorization: `JWT ${localStorage.getItem('token')}`}
+        headers: {Authorization: `Token ${localStorage.getItem('token')}`}
       })
         .then(response => {
           if (response.status > 400) {
