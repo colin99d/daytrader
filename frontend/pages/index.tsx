@@ -41,6 +41,7 @@ type HomeState = {
   baseUrl:"http://127.0.0.1:8000",
   loggedIn: boolean,
   username: string,
+  userId: number
 }
 
 class App extends Component<{}, HomeState> {
@@ -54,6 +55,7 @@ class App extends Component<{}, HomeState> {
         baseUrl:"http://127.0.0.1:8000",
         loggedIn: false,
         username: '',
+        userId: null,
     };
     this.handleClick = this.handleClick.bind(this);
     this.handleLogin = this.handleLogin.bind(this);
@@ -129,7 +131,8 @@ class App extends Component<{}, HomeState> {
         this.setState({
           loggedIn: true,
           username: json.username,
-          page: "home"
+          page: "home",
+          userId: json.id
         }, () => {
           this.getFetch("/api/stocks/", "stocks");
           this.getFetch("/api/decisions/", "decisions")

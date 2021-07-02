@@ -8,6 +8,12 @@ class TopicSerializer(serializers.ModelSerializer):
 
 class MessageSerializer(serializers.ModelSerializer):
     topic = TopicSerializer()
+    same_user = serializers.SerializerMethodField('same_user')
+
+    def same_user(self,request):
+        return self.user == request.user
+        
     class Meta:
         model = Message
-        fields = '__all__'
+        fields = ('text','topic','user','same_user')
+        read_only_fields = ['same_user']

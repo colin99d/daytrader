@@ -72,17 +72,22 @@ class Chat extends Component<ChatProps, ChatState> {
             error: ''
         };
         this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
         this.changeRoom = this.changeRoom.bind(this);
       }
 
     handleChange(e:any, formKey: "roomName" | "message") {this.setState({...this.state, [formKey]: e.target.value})}
 
+    chatSocket: any = ""
+
     changeRoom(newRoom:string) {
-      
       this.setState({activeRoom: newRoom})
-      this.getFetch("/api/topics/", "topics");
-      let chatSocket = new WebSocket('ws://'+ this.props.baseUrl.replace("http://","")+ '/ws/chat/'+newRoom+'/'+"?token="+localStorage.getItem('token'));
-      chatSocket.onmessage = function(e) {
+      if (this.chatSocket != "") {
+        console.log("Chat succesfull closed")
+        this.chatSocket.close()
+      }
+      this.chatSocket = new WebSocket('ws://'+ this.props.baseUrl.replace("http://","")+ '/ws/chat/'+newRoom+'/'+"?token="+localStorage.getItem('token'));
+      this.chatSocket.onmessage = function(e) {
         
         const data = JSON.parse(e.data);
         const messages = this.state.messages;
@@ -92,7 +97,7 @@ class Chat extends Component<ChatProps, ChatState> {
         
       }.bind(this)
 
-    chatSocket.onclose = function(e) {
+    this.chatSocket.onclose = function(e) {
       console.error('Chat socket closed unexpectedly');
       let baseUrl = this.props.baseUrl;
       setTimeout(function() {
@@ -100,21 +105,18 @@ class Chat extends Component<ChatProps, ChatState> {
       }, 1000);
     }.bind(this)
 
-    chatSocket.onerror = function(err: any) {
+    this.chatSocket.onerror = function(err: any) {
       console.error('Socket encountered error: ', err.message, 'Closing socket');
-      chatSocket.close();
+      this.chatSocket.close();
     };
-
-    document.querySelector("#submitButton").addEventListener("click", function() {
-      let inputValue:string = (document.querySelector("#messageValue") as HTMLInputElement).value
-      console.log(inputValue)
-      if (inputValue != "") {
-        chatSocket.send(JSON.stringify({'message': inputValue}));
-      }
-    }
-    )
   }
 
+  handleSubmit() {
+    if (this.state.message) {
+      this.chatSocket.send(JSON.stringify({'message': this.state.message}));
+      this.setState({message:""})
+    }
+  }
 
     getFetch(endpoint:string, state: "messages" | "topics") {
       fetch(this.props.baseUrl + endpoint,  {
@@ -160,7 +162,7 @@ class Chat extends Component<ChatProps, ChatState> {
                 </div>
                 <div className={"flex mb-12 " + (this.state.activeRoom ? "" : "hidden")}>
                   <input value={this.state.message} onChange={(e) => {this.handleChange(e, "message")}} className="w-full bg-gray-300 py-5 px-3 rounded-xl  flex-1" type="text" id="messageValue"/>
-                  <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" id="submitButton">Submit</button>
+                  <button onClick={this.handleSubmit}className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
                 </div>
                 </div>
             </div>
