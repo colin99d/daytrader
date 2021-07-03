@@ -1,0 +1,57 @@
+version: '3.7'
+
+services:
+  django:
+    build: ./app
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./app/:/usr/src/app/
+    ports:
+      - 8000:8000
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - redis
+      - postgres
+  postgres:
+    image: postgres:12.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=E0iP0OgWTJbg7usHaFXC
+      - POSTGRES_PASSWORD=tGAZWq6EfRuMFfAaaEiQ
+      - POSTGRES_DB=TCwiK2TVXho5b31d6uKW
+  celeryworker:
+    build: ./app
+    command: celery -A daytrader worker
+    volumes:
+      - ./app:/usr/src/app
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - django
+      - redis
+      - postgres
+  celerybeat:
+    build: ./app
+    command: celery -A daytrader beat
+    volumes:
+      - ./app:/usr/src/app
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - django
+      - redis
+      - postgres
+  nextjs:
+    build: ./frontend
+    command: npm run build && npm run start
+    volumes:
+      - ./app:/usr/src/app
+    depends_on:
+      - django
+  redis:
+    image: redis:6-alpine
+
+volumes:
+  postgres_data:
