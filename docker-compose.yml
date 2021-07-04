@@ -44,12 +44,16 @@ services:
       - redis
       - postgres
   nextjs:
-    build: ./frontend
-    command: npm run build && npm run start
+    build: ./frontend 
+    command: npm run dev #change in production
     volumes:
-      - ./app:/usr/src/app
+      - ./frontend:/usr/src/app
     depends_on:
       - django
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=dev node server.js
   redis:
     image: redis:6-alpine
 

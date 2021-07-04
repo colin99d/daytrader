@@ -10,11 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-import os, environ
+import os
 from pathlib import Path
 
-environ.Env.read_env()
-env = environ.Env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,12 +22,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = os.environ.get("SECRET_KEY")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG')
+DEBUG = os.environ.get("DEBUG")
 
-ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(",")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(",")
 
 
 # Application definition
@@ -117,11 +116,11 @@ WSGI_APPLICATION = 'daytrader.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': env('DATABASE_NAME'),
-        'USER': env('DATABASE_USERNAME'),
-        'PASSWORD': env('DATABASE_PASSWORD'),
-        'HOST': env('DATABASE_HOST'),
-        'PORT': env('DATABASE_PORT'),
+        'NAME': os.environ.get('DATABASE_NAME'),
+        'USER': os.environ.get('DATABASE_USERNAME'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
+        'HOST': os.environ.get('DATABASE_HOST'),
+        'PORT': os.environ.get('DATABASE_PORT'),
         'TEST': {
             'NAME': os.path.join(BASE_DIR, 'db_test.sqlite3')
         }
@@ -173,24 +172,24 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-BROKER_URL = env('REDIS_BROKER_URL')
-CELERY_RESULT_BACKEND = env('REDIS_BROKER_URL')
+BROKER_URL = os.environ.get('REDIS_BROKER_URL')
+CELERY_RESULT_BACKEND = os.environ.get('REDIS_BROKER_URL')
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'America/Indiana/Indianapolis' # Your timezone
 
 # https://sendgrid.com/docs/for-developers/sending-email/django/
-EMAIL_HOST = env("SENDGRID_EMAIL_HOST")
-EMAIL_HOST_USER = env("SENDGRID_HOST_USER")
-EMAIL_HOST_PASSWORD = env('SENDGRID_KEY')
-EMAIL_PORT = env("SENDGRID_PORT")
+EMAIL_HOST = os.environ.get("SENDGRID_EMAIL_HOST")
+EMAIL_HOST_USER = os.environ.get("SENDGRID_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_KEY')
+EMAIL_PORT = os.environ.get("SENDGRID_PORT")
 EMAIL_USE_TLS = True
 
 
 CORS_ORIGIN_ALLOW_ALL = False
 
-CORS_ORIGIN_WHITELIST = [env("CORS_WHITELIST")]
+CORS_ORIGIN_WHITELIST = os.environ.get("CORS_WHITELIST").split(",")
 
 ASGI_APPLICATION = 'daytrader.asgi.application'
 WSGI_APPLICATION = 'daytrader.wsgi.application'
@@ -199,7 +198,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [env('REDIS_BROKER_URL')],
+            "hosts": [os.environ.get('REDIS_BROKER_URL')],
         },
     },
 }

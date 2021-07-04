@@ -43,6 +43,13 @@ services:
       - django
       - redis
       - postgres
+
+  nextjs:
+    build: ./frontend 
+    depends_on:
+      - django
+    ports:
+      - 3000:3000
   redis:
     image: redis:6-alpine
   nginx:
