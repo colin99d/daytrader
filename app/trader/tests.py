@@ -1,24 +1,23 @@
-from .functions.helpers import get_stock, valid_ticker, get_closing, daily_email, last_date
-from daytrader.celery import begin_day, end_day, send_email
+from daytrader.celery import begin_day, end_day, send_email, get_stock_tickers
+from .functions.helpers import get_closing, daily_email, last_date, get_stock
 from .views import StockView, AlgorithmView, DecisionView
 from django.test import TestCase, TransactionTestCase
+from datetime import datetime, timedelta, time, date
 from rest_framework.test import force_authenticate
 from rest_framework.test import APIRequestFactory
 from django.test.utils import override_settings
 from .models import Algorithm, Decision, Stock
 from django.utils.timezone import make_aware
+from .functions.scrapers import valid_ticker
 from rest_framework.test import APITestCase
 from .templatetags.filter import growth
 from rest_framework import status
 from django.utils import timezone
 from django.urls import reverse
-from datetime import timedelta
-from datetime import datetime
 from bs4 import BeautifulSoup
 import requests, random, json
 from django.core import mail
 from user.models import User
-from datetime import time
 
 tickers = ["TSLA", "AAPL", "AMZN", "GME", "F"]
 
@@ -67,7 +66,7 @@ class ClosingTestCase(TransactionTestCase):
     def setUpClass(cls):
         super(ClosingTestCase, cls).setUpClass()
         for ticker in tickers:
-            Stock.objects.create(ticker=ticker)
+            Stock.objects.get_or_create(ticker=ticker)
         algo = Algorithm.objects.create(name="The test algo",public=True)
         get_stock(algo)
         get_closing()
@@ -77,8 +76,12 @@ class ClosingTestCase(TransactionTestCase):
         """Test that get_closing enters a possible closing price, or none if market is open"""
         weekday = timezone.now().weekday()
         currTime = timezone.now().time()
-            
-        if weekday < 5 and currTime > time(9,30,0) and currTime < time(16,0,0):
+
+        holidays = [date(2021,7,5),date(2021,9,6),date(2021,12,24),date(2022,1,17),date(2022,2,21),date(2022,4,15),date(2022,5,30),date(2022,7,4),
+        date(2022,9,5),date(2022,12,26),date(2023,1,2),date(2023,1,16),date(2023,2,20),date(2023,4,7),date(2023,5,29),date(2023,7,4),
+        date(2023,9,4),date(2023,12,25)]
+        
+        if weekday < 5 and currTime > time(9,30,0) and currTime < time(16,0,0) and timezone.now().date not in holidays:
             self.assertIsNone(self.pick.closingPrice)
         else:
             self.assertTrue(self.pick.closingPrice > 0)
@@ -298,4 +301,9 @@ class CeleryFeaturesTestCase(TestCase):
         self.assertEqual(begin_day.run().count(),0)
         self.assertEqual(end_day.run().count(),0)
 
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
+    def test_get_tickers(self):
+        items = get_stock_tickers()
+        self.assertTrue(items.filter(exchange="NYSE").count() > 500)
+        self.assertTrue(items.filter(exchange="NASDAQ").count() > 500)
 

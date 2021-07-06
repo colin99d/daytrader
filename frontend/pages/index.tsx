@@ -1,15 +1,16 @@
 import React, { Component } from "react";
 import Header from './components/header';
-import Table from './components/table';
+import AlgoTable from './components/algoTable';
 import Home from './components/home';
 import Chat from './components/chat';
 import Login from './components/login';
 import Signup from './components/signup';
 import Error from './components/error';
 
-type pageOpts = "home" | "table" | "chat" | "login" | "signup"
+type pageOpts = "home" | "algorithm" | "chat" | "login" | "signup"
 type stock = {id: number, ticker: string};
 type algorithms = {id: number, name: string};
+type login = {password: string, username: string};
 type decision = {
   id: number, 
   stock: stock, 
@@ -20,10 +21,6 @@ type decision = {
   tradeDate: Date,
   created_at: Date
 }
-type login = {
-  password: string,
-  username: string,
-}
 
 type signup = {
   password: string,
@@ -33,9 +30,18 @@ type signup = {
   email: string
 }
 
+type algorithm = {
+  id: number,
+  name: string,
+  description: string,
+  public: boolean,
+  created_at: Date,
+}
+
 type HomeState = {
   page: pageOpts,
   stocks: stock[],
+  algorithms: algorithm[],
   decisions: decision[],
   error: string,
   baseUrl: string,
@@ -51,8 +57,9 @@ class App extends Component<{}, HomeState> {
         page: "login",
         stocks: null,
         decisions: null,
+        algorithms: null,
         error: "",
-        baseUrl: 'http://127.0.0.1:1337',
+        baseUrl: 'http://127.0.0.1:8000',
         loggedIn: false,
         username: '',
         userId: null,
@@ -64,7 +71,7 @@ class App extends Component<{}, HomeState> {
     this.getFetch = this.getFetch.bind(this);
   }
 
-  getFetch(endpoint:string, state: "stocks" | "decisions") {
+  getFetch(endpoint:string, state: "stocks" | "decisions" | "algorithms") {
     fetch(this.state.baseUrl + endpoint,  {
       headers: {Authorization: `Token ${localStorage.getItem('token')}`}
     })
@@ -100,8 +107,8 @@ class App extends Component<{}, HomeState> {
           console.log("We just reran token")
           console.log(json)
           this.setState({username: json.username, userId:json.id})
-          this.getFetch("/api/stocks/", "stocks");
-          this.getFetch("/api/decisions/", "decisions")
+          this.getFetch("/api/decisions/", "decisions");
+          this.getFetch("/api/algorithms/", "algorithms");
           this.setState({loggedIn: true, page: "home"})
         })
         .catch(error => {
@@ -110,7 +117,6 @@ class App extends Component<{}, HomeState> {
     } else {
       this.setState({loggedIn: false})
     }
-
   }
 
   handleLogin = (e, data: login) => {
@@ -136,8 +142,8 @@ class App extends Component<{}, HomeState> {
           page: "home",
           userId: json.id
         }, () => {
-          this.getFetch("/api/stocks/", "stocks");
-          this.getFetch("/api/decisions/", "decisions")
+          this.getFetch("/api/decisions/", "decisions");
+          this.getFetch("/api/algorithms/", "algorithms");
         });
       });
 
@@ -158,8 +164,7 @@ class App extends Component<{}, HomeState> {
           username: json.username,
           page: "home"
         },() => {
-          this.getFetch("/api/stocks/", "stocks");
-          this.getFetch("/api/decisions/", "decisions")
+          this.getFetch("/api/decisions/", "decisions");
         });
       });
   };
@@ -173,8 +178,8 @@ class App extends Component<{}, HomeState> {
     let viewPage;
     if (this.state.page =="home" && this.state.loggedIn) {
       viewPage = <Home stocks={this.state.stocks} baseUrl={this.state.baseUrl} getFetch={this.getFetch}/>;
-    } else if (this.state.page == "table" && this.state.loggedIn) {
-      viewPage = <Table decisions={this.state.decisions}/>;
+    } else if (this.state.page == "algorithm" && this.state.loggedIn) {
+      viewPage = <AlgoTable algorithms={this.state.algorithms}/>;
     } else if (this.state.page == "chat" && this.state.loggedIn) {
       viewPage = <Chat baseUrl={this.state.baseUrl} userId={this.state.userId}/>
     } else if (this.state.page == "login" && !this.state.loggedIn) {

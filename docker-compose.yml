@@ -18,9 +18,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_USER=E0iP0OgWTJbg7usHaFXC
-      - POSTGRES_PASSWORD=tGAZWq6EfRuMFfAaaEiQ
-      - POSTGRES_DB=TCwiK2TVXho5b31d6uKW
+      - ./.env.prod
   celeryworker:
     build: ./app
     command: celery -A daytrader worker
@@ -45,15 +43,14 @@ services:
       - postgres
   nextjs:
     build: ./frontend 
-    command: npm run dev #change in production
-    volumes:
-      - ./frontend:/usr/src/app
     depends_on:
       - django
     ports:
       - 3000:3000
-    environment:
-      - NODE_ENV=dev node server.js
+    stdin_open: true
+    volumes:
+        - ./frontend:/usr/src/app/my-app
+        - /usr/src/app/my-app/node_modules
   redis:
     image: redis:6-alpine
 

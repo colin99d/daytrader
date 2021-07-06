@@ -30,16 +30,14 @@ class Message extends Component<MessageProps, {}> {
         let firstDiv = this.props.same ? "justify-end" : "justify-start"
         let secondDiv = this.props.same ? "mr-2  bg-blue-400 rounded-bl-3xl rounded-tl-3xl rounded-tr-xl" : "ml-2 bg-gray-400 rounded-br-3xl rounded-tr-3xl rounded-tl-xl"
       return (
-        
         <div className={"flex mb-4 " + firstDiv}>
             <div className={"text-white py-3 px-4 " + secondDiv}>
             {this.props.text}
             </div>
         </div>
   )
+  }
 }
-}
-
 
 type topic = {
   id: number,
@@ -70,8 +68,6 @@ type ChatProps = {
 
 
 class Chat extends Component<ChatProps, ChatState> {
-  //private messageEnd = React.createRef<HTMLDivElement>();
-  private messageEnd: any = React.createRef();
     constructor(props: any) {
         super(props);
         this.state = {
@@ -92,44 +88,48 @@ class Chat extends Component<ChatProps, ChatState> {
     chatSocket: any = ""
 
     changeRoom(newRoom:string) {
-      this.setState({activeRoom: newRoom})
-      if (this.chatSocket != "") {
-        console.log("Chat succesfull closed")
-        this.chatSocket.close()
-      }
-      this.chatSocket = new WebSocket('ws://'+ this.props.baseUrl.replace("http://","")+ '/ws/chat/'+newRoom+'/'+"?token="+localStorage.getItem('token'));
-      this.chatSocket.onmessage = function(e) {
-        
-        const data = JSON.parse(e.data);
-        const messages = this.state.messages;
-        messages.push({text:data.message,user:data.userId,topic:data.topic});
-        this.setState({messages:messages})
-        console.log(e.data)
-        
+      if (newRoom != this.state.activeRoom) {
+        this.setState({activeRoom: newRoom})
+        if (this.chatSocket != "") {
+          this.chatSocket.close()
+        }
+        this.chatSocket = new WebSocket('ws://'+ this.props.baseUrl.replace("http://","")+ '/ws/chat/'+newRoom+'/'+"?token="+localStorage.getItem('token'));
+        this.chatSocket.onmessage = function(e) {
+          
+          const data = JSON.parse(e.data);
+          const messages = this.state.messages;
+          messages.push({text:data.message,user:data.userId,topic:data.topic});
+          this.setState({messages:messages})
+          console.log(e.data)
+          
+        }.bind(this)
+
+      this.chatSocket.onclose = function(e) {
+        let baseUrl = this.props.baseUrl;
+        setTimeout(function() {
+          let chatSocket = new WebSocket('ws://'+ baseUrl.replace("http://","")+ '/ws/chat/'+newRoom+'/'+"?token="+localStorage.getItem('token'));
+        }, 1000);
       }.bind(this)
 
-    this.chatSocket.onclose = function(e) {
-      console.error('Chat socket closed unexpectedly');
-      let baseUrl = this.props.baseUrl;
-      setTimeout(function() {
-        let chatSocket = new WebSocket('ws://'+ baseUrl.replace("http://","")+ '/ws/chat/'+newRoom+'/'+"?token="+localStorage.getItem('token'));
-      }, 1000);
-    }.bind(this)
-
-    this.chatSocket.onerror = function(err: any) {
-      console.error('Socket encountered error: ', err.message, 'Closing socket');
-      this.chatSocket.close();
-    };
+      this.chatSocket.onerror = function(err: any) {
+        this.chatSocket.close();
+      }.bind(this);
+    }
   }
 
   gotoBottom(selector:string){
-    document.querySelector(selector).scrollIntoView ({ behavior: "smooth" });
+    let item = document.querySelector(selector)
+    if (item) {
+      item.scrollIntoView ({ behavior: "smooth" });
+    }
  }
 
   handleSubmit() {
     if (this.state.message) {
-      this.chatSocket.send(JSON.stringify({'message': this.state.message}));
-      this.setState({message:""})
+      let message = this.state.message
+      this.setState({message:""}, function() {
+        this.chatSocket.send(JSON.stringify({'message': message}));
+      })
     }
   }
 
@@ -155,9 +155,7 @@ class Chat extends Component<ChatProps, ChatState> {
     }
 
     componentDidUpdate() {
-      console.log(this.state.roomName)
       this.gotoBottom(".messageContainer")
-        
     }
 
     render() {

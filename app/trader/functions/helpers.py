@@ -1,12 +1,12 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import get_template
+from datetime import timedelta, time, date
 from django.core.mail import send_mail
-from datetime import timedelta, time
 from .algos import z_score_analyzer
+from .scrapers import get_tickers
 from django.utils import timezone
-from datetime import datetime
+from trader.models import Stock
 import yfinance as yf
-import requests, re
 
 
 def daily_email(user):
@@ -32,26 +32,13 @@ def daily_email(user):
 
     send_mail(subject,text_content,from_email,[to],html_message=html_content, fail_silently=False)
 
-def get_cashflows(ticker, quarterly=False):
-    ending = "cashflowStatementHistory" if quarterly == False else "cashflowStatementHistoryQuarterly"
-    url = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+ ticker.upper() +'?modules='+ending
-    response = requests.get(url).json()
-    items = response['quoteSummary']['result'][0][ending]['cashflowStatements']
-    dictVals = [{"id": "Operating Cash Flows", "data": []},{"id": "Financing Cash Flows", "data": []},{"id": "Investing Cash Flows", "data": []}]
-    for item in items:
-        date = datetime.utcfromtimestamp(item['endDate']['raw']).strftime("%m-%d-%Y")
-        dictVals[0]["data"].append({"x":date,"y":item['totalCashFromOperatingActivities']['raw']})
-        dictVals[1]["data"].append({"x":date,"y":item['totalCashFromFinancingActivities']['raw']})
-        dictVals[2]["data"].append({"x":date,"y":item['totalCashflowsFromInvestingActivities']['raw']})    
-    return dictVals
-
-def valid_ticker(symbol):
-    url = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+ symbol.upper() +'?modules=price'
-    response = requests.get(url).content.decode('utf-8')
-    ticker = re.search('price', response)
-    return False if ticker == None else True
 
 def last_date(dt):
+    holidays = [date(2021,7,5),date(2021,9,6),date(2021,12,24),date(2022,1,17),date(2022,2,21),date(2022,4,15),date(2022,5,30),date(2022,7,4),
+        date(2022,9,5),date(2022,12,26),date(2023,1,2),date(2023,1,16),date(2023,2,20),date(2023,4,7),date(2023,5,29),date(2023,7,4),
+        date(2023,9,4),date(2023,12,25)]
+    if dt.date() in holidays:
+        dt = dt - timedelta(days=1)
     weekday = dt.weekday()
     currTime = dt.time()
     if weekday == 5:
@@ -104,5 +91,17 @@ def get_stock(algo):
         if len(symbols) > 0:
             data = get_data(symbols)
             ticker, open, conf, tradeDate = z_score_analyzer(data, symbols)
-            stock = Stock.objects.get(ticker=ticker)
-            Decision.objects.create(stock=stock,algorithm=algo,openPrice=open,confidence=conf, tradeDate=tradeDate)
+            if tradeDate == last:
+                stock = Stock.objects.get(ticker=ticker)
+                Decision.objects.create(stock=stock,algorithm=algo,openPrice=open,confidence=conf, tradeDate=tradeDate)
+
+def get_stocklist_html():
+    nasdaq = get_tickers("NASDAQ")
+    nyse = get_tickers("NYSE")
+    stocks = nasdaq + nyse
+    for stock in stocks:
+        item = Stock.objects.get_or_create(ticker=stock["ticker"])[0]
+        setattr(item,"name",stock["name"])
+        setattr(item,"exchange",stock["exchange"])
+        item.save()
+            

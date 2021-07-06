@@ -4,7 +4,7 @@ from django.contrib import admin
 
 # Register your models here.
 class StockAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["ticker","name","price","exchange","last_updated","active"]
 
 class AlgorithmAdmin(admin.ModelAdmin):
     pass

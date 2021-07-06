@@ -1,6 +1,6 @@
 from .serializers import DecisionGetSerializer, DecisionSerializer, StockSerializer, AlgorithmSerializer
 from django.views.decorators.csrf import csrf_exempt
-from .functions.helpers import valid_ticker, get_cashflows
+from .functions.scrapers import valid_ticker, get_cashflows
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 from django.http import JsonResponse

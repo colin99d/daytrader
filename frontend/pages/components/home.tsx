@@ -36,7 +36,6 @@ class Home extends Component<HomeProps, HomeState> {
             tickerDisplay: "",
         };
         this.handleChange = this.handleChange.bind(this);
-        this.handleActivate = this.handleActivate.bind(this);
         this.handleClick = this.handleClick.bind(this);
         this.handleErrors = this.handleErrors.bind(this);
       }
@@ -63,21 +62,12 @@ class Home extends Component<HomeProps, HomeState> {
     }
 
     handleClick(): void {
-        if (this.state.ticker.length > 0) {
-            this.postGeneric("/api/stocks/",{ticker: this.state.ticker})
-            .then(() => this.props.getFetch("/api/stocks/", "stocks"))
-        } else {
-            this.setState({error: "Cannot use a blank ticker."})
-        }
-    }
-
-    handleActivate(ticker: string): void {
         let url = this.props.baseUrl + "/cashflows/";
         let data  = new FormData();
-        data.append('ticker', ticker)
+        data.append('ticker', this.state.ticker)
         fetch(url, {method: 'post',body: data,})
         .then(response => response.json())
-        .then(data => {this.setState({data: data, tickerDisplay: ticker})})
+        .then(data => {this.setState({data: data, tickerDisplay: this.state.ticker, ticker:""})})
     }
 
     formatNumber(value: number): string {
@@ -115,19 +105,9 @@ class Home extends Component<HomeProps, HomeState> {
                 <input onChange={(e) => {this.handleChange(e, 'ticker')}} value={this.state.ticker} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" name="ticker" maxLength={5} />
                 <button onClick={() => {this.handleClick()}} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4" type='button'>Submit</button>
             </form>
-
-            <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">Managed Assets</h2>
-
-                <div className="bg-white shadow-xl rounded-lg overflow-y-auto h-2/4">
-                    <ul className="divide-y divide-gray-300">
-                        {this.props.stocks ? this.props.stocks.map( item => 
-                        <li onClick={() => {this.handleActivate(item.ticker)}} className="p-4 hover:bg-gray-50 cursor-pointer" key={item.id}>{item.ticker}</li>
-                        ) : null}
-                    </ul>
-                </div>
                 </div>
             <div className="ml-5 h-3/4 w-full">
-            <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate text-center">{this.state.tickerDisplay}</h1>
+            <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate text-center">{this.state.tickerDisplay.toUpperCase()}</h1>
             {this.state.data ?<div className="w-full h-full bg-white">
             <ResponsiveLine 
                 theme={theme}
