@@ -16,7 +16,7 @@ class AlgoTestCase(TransactionTestCase):
         for ticker in tickers:
             Stock.objects.create(ticker=ticker)
         algo = Algorithm.objects.create(name="The test algo",public=True)
-        get_stock(algo)
+        get_stock(algo, Stock.objects.all())
         cls.pick = Decision.objects.get()
 
     def test_possible_ticker(self):
@@ -42,9 +42,9 @@ class AlgoTestCase(TransactionTestCase):
         for ticker in tickers:
             Stock.objects.create(ticker=ticker)
         algo = Algorithm.objects.create(name="The test algo",public=True)
-        get_stock(algo)
+        get_stock(algo, Stock.objects.all())
         self.assertEqual(Decision.objects.count(),1)
-        get_stock(algo)
+        get_stock(algo, Stock.objects.all())
         self.assertEqual(Decision.objects.count(),1)
 
 class ClosingTestCase(TransactionTestCase):
@@ -55,7 +55,7 @@ class ClosingTestCase(TransactionTestCase):
         for ticker in tickers:
             Stock.objects.get_or_create(ticker=ticker)
         algo = Algorithm.objects.create(name="The test algo",public=True)
-        get_stock(algo)
+        get_stock(algo, Stock.objects.all().order_by('-volume'))
         get_closing()
         cls.pick = Decision.objects.get()
 

@@ -13,14 +13,40 @@ class CeleryFeaturesTestCase(TestCase):
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
     def test_begin_day(self):
-        """Test that the begin_day celery function adds a decision to the model and sends an email to the user"""
+        """Test that the begin_day celery function adds a decision to the model and sends an email to the user and chooses highest volume"""
         User.objects.create_user('testUser','test@gmail.com','secure49password')
-        for ticker in tickers:
-            Stock.objects.create(ticker=ticker)
-        decisions = begin_day.apply().get()
+        s1 = Stock.objects.create(ticker = "TSLA", volume=10000,price=0)
+        s2 = Stock.objects.create(ticker = "AAPL", volume=2000,price=1000)
+        s3 = Stock.objects.create(ticker = "AMZN", volume=3000,price=83)
+        s4 = Stock.objects.create(ticker = "GME", volume=4000,price=51)
+        s5 = Stock.objects.create(ticker = "F", volume=5000,price=26)
+        s6 = Stock.objects.create(ticker = "T", volume=6000,price=132)
+        s7 = Stock.objects.create(ticker = "CANO", volume=7000,price=56)
+        s8 = Stock.objects.create(ticker = "CMAX", volume=8000,price=200)
+        decisions = begin_day(2)
         self.assertEqual(len(decisions),1)
         self.assertTrue(decisions[0].openPrice > 0)
         self.assertEqual(len(mail.outbox), 1)
+        self.assertTrue(decisions[0].stock == s7 or decisions[0].stock == s5)
+
+
+    def test_begin_day_lots_more(self):
+        """Test that the begin_day celery function adds a decision to the model and sends an email to the user and doesn't choose a price over 100"""
+        User.objects.create_user('testUser','test@gmail.com','secure49password')
+        s1 = Stock.objects.create(ticker = "TSLA", volume=1000,price=20)
+        s2 = Stock.objects.create(ticker = "AAPL", volume=2000,price=1000)
+        s3 = Stock.objects.create(ticker = "AMZN", volume=3000,price=83)
+        s4 = Stock.objects.create(ticker = "GME", volume=4000,price=51)
+        s5 = Stock.objects.create(ticker = "F", volume=5000,price=26)
+        s6 = Stock.objects.create(ticker = "T", volume=6000,price=132)
+        s7 = Stock.objects.create(ticker = "CANO", volume=7000,price=56)
+        s8 = Stock.objects.create(ticker = "CMAX", volume=8000,price=200)
+        decisions = begin_day(5)
+        self.assertEqual(len(decisions),1)
+        self.assertTrue(decisions[0].openPrice > 0)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertTrue(decisions[0].stock not in [s8,s6,s2])
+
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
     def test_end_day(self):

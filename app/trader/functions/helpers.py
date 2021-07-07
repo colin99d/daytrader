@@ -84,11 +84,11 @@ def get_data(symbols):
         data = data.fillna(0)
     return data
 
-def get_stock(algo):
+def get_stock(algo, stocks):
     from trader.models import Stock, Decision
     last = last_date(timezone.now())[0]
     if not Decision.objects.filter(tradeDate=last,algorithm=algo).exists():
-        symbols = [x.ticker for x in Stock.objects.all()]
+        symbols = [x.ticker for x in stocks]
         if len(symbols) > 0:
             data = get_data(symbols)
             ticker, open, conf, tradeDate = z_score_analyzer(data, symbols)
@@ -107,7 +107,7 @@ def get_stocklist_html():
         item.save()
 
 def get_stock_data(stocks, n):
-    newList = stocks.order_by('-last_updated')[:n]
+    newList = stocks.order_by('last_updated')[:n]
     
     for item in newList:
         if item.last_updated is None:

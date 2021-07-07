@@ -40,8 +40,8 @@ class HelpersTestCase(TransactionTestCase):
 
     def test_get_stock_date(self):
         """Tests that the functions gets stock data when called, if it has been more than 6 days since the last attempt"""
-        Stock.objects.create(ticker="T")
-        Stock.objects.create(ticker="IWV")
+        Stock.objects.create(ticker="T", last_updated=timezone.now() - timedelta(days=12))
+        Stock.objects.create(ticker="IWV", last_updated=timezone.now() - timedelta(days=15))
         Stock.objects.create(ticker="GME", last_updated=timezone.now() - timedelta(days=7))
         Stock.objects.create(ticker="F", last_updated=timezone.now() - timedelta(days=4))
         get_stock_data(Stock.objects.all(),2)

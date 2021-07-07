@@ -9,12 +9,13 @@ app.config_from_object('django.conf:settings')
 app.autodiscover_tasks()
 
 @app.task
-def begin_day():
+def begin_day(n):
     from trader.functions.helpers import daily_email, get_stock
-    from trader.models import Decision, Algorithm
+    from trader.models import Decision, Algorithm, Stock
     from user.models import User
     algo = Algorithm.objects.get_or_create(name="Z-score daytrader",public=True)
-    get_stock(algo[0])
+    stocks = Stock.objects.filter(price__lt=100, price__gt=0).order_by('-volume')[:n]
+    get_stock(algo[0], stocks)
     for item in User.objects.all():
         if item.email:
             daily_email(item)
@@ -53,7 +54,7 @@ def get_stock_info(n):
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     #Decide which stocks to buy (using original algo) and send a mass mail every weekday at 9:32 am
-    sender.add_periodic_task(crontab(hour=9, minute=32, day_of_week='1-5'), begin_day, name='Get daily trade')
+    sender.add_periodic_task(crontab(hour=9, minute=32, day_of_week='1-5'), begin_day(50), name='Get daily trade')
     #Get closing prices for all stocks at 4:01 pm every weekday
     sender.add_periodic_task(crontab(hour=16, minute=1, day_of_week='1-5'), end_day, name='Get closing price')
     #Update list of all stocks every Sunday at 1 am
