@@ -45,3 +45,22 @@ def get_tickers(exchange):
             if  len(ticker) >= 1 and len(ticker) < 6:
                 stocks.append({"name":name, "ticker":ticker,"exchange":exchange})
     return stocks 
+
+def get_stock_info(stock):
+    ticker = stock.ticker
+    url = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+ ticker +'?modules=price'
+    response = requests.get(url).json()["quoteSummary"]
+    try:
+        clean = response["result"][0]["price"]
+        last_updated = datetime.fromtimestamp(clean["regularMarketTime"])
+        openPrice = clean["regularMarketOpen"]["raw"]
+        volume = clean["regularMarketVolume"]["raw"]
+        setattr(stock,"last_updated",last_updated)
+        setattr(stock,"price",openPrice)
+        setattr(stock,"volume",volume)
+        setattr(stock,"active",(volume > 0))
+    except TypeError:
+        if response['error']['code'] == 'Not Found':
+            setattr(stock,"active",False)
+
+    stock.save()

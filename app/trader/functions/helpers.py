@@ -1,9 +1,9 @@
 from django.core.exceptions import ObjectDoesNotExist
+from .scrapers import get_tickers, get_stock_info
 from django.template.loader import get_template
 from datetime import timedelta, time, date
 from django.core.mail import send_mail
 from .algos import z_score_analyzer
-from .scrapers import get_tickers
 from django.utils import timezone
 from trader.models import Stock
 import yfinance as yf
@@ -104,4 +104,11 @@ def get_stocklist_html():
         setattr(item,"name",stock["name"])
         setattr(item,"exchange",stock["exchange"])
         item.save()
+
+def get_stock_data(stocks, n):
+    newList = stocks.order_by('last_updated')[:n]
+    for item in newList:
+        get_stock_info(item)
+
+
             

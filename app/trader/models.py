@@ -5,6 +5,7 @@ class Stock(models.Model):
     ticker = models.CharField(max_length=5, unique=True)
     name = models.CharField(max_length=150, blank=True, null=True)
     price = models.FloatField(blank=True, null=True)
+    volume = models.PositiveBigIntegerField(blank=True, null=True)
     exchange=models.CharField(max_length=50, blank=True, null=True)
     last_updated = models.DateTimeField(blank=True, null=True)
     active = models.BooleanField(default=False)
