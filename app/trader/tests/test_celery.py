@@ -1,4 +1,4 @@
-from daytrader.celery import begin_day, end_day, send_email, get_stock_tickers
+from daytrader.celery import begin_day, end_day, send_email, get_stock_tickers, get_stock_info
 from trader.models import Algorithm, Decision, Stock
 from django.test.utils import override_settings
 from django.utils.timezone import make_aware
@@ -44,12 +44,16 @@ class CeleryFeaturesTestCase(TestCase):
         send_email.apply().get()
         self.assertEqual(len(mail.outbox), 1)
 
-    def test_task(self):
-        self.assertEqual(begin_day.run().count(),0)
-        self.assertEqual(end_day.run().count(),0)
-
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
     def test_get_tickers(self):
         items = get_stock_tickers()
         self.assertTrue(items.filter(exchange="NYSE").count() > 500)
         self.assertTrue(items.filter(exchange="NASDAQ").count() > 500)
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
+    def test_update_ticker_information(self):
+        for ticker in tickers:
+            Stock.objects.create(ticker=ticker)
+        get_stock_info(4)
+        self.assertEqual(Stock.objects.filter(price__gt=0).count(),4)
+        

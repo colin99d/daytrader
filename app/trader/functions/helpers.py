@@ -1,10 +1,11 @@
 from django.core.exceptions import ObjectDoesNotExist
-from .scrapers import get_tickers, get_stock_info
+from datetime import timedelta, time, date, datetime
 from django.template.loader import get_template
-from datetime import timedelta, time, date
+from django.utils.timezone import make_aware
 from django.core.mail import send_mail
 from .algos import z_score_analyzer
 from django.utils import timezone
+from .scrapers import get_tickers
 from trader.models import Stock
 import yfinance as yf
 
@@ -106,9 +107,13 @@ def get_stocklist_html():
         item.save()
 
 def get_stock_data(stocks, n):
-    newList = stocks.order_by('last_updated')[:n]
+    newList = stocks.order_by('-last_updated')[:n]
+    
     for item in newList:
-        get_stock_info(item)
+        if item.last_updated is None:
+            item.update_stock_info()
+        elif (timezone.now() - item.last_updated) > timedelta(days=6):
+            item.update_stock_info()
 
 
             
