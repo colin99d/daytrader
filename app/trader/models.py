@@ -11,6 +11,7 @@ class Stock(models.Model):
     exchange=models.CharField(max_length=50, blank=True, null=True)
     last_updated = models.DateTimeField(blank=True, null=True)
     active = models.BooleanField(default=False)
+    listed = models.BooleanField(null=True, default=None)
     created_at= models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -21,17 +22,23 @@ class Stock(models.Model):
         url = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+ ticker +'?modules=price'
         response = requests.get(url).json()["quoteSummary"]
         try:
-            clean = response["result"][0]["price"]
-            last_updated = datetime.fromtimestamp(clean["regularMarketTime"])
-            openPrice = clean["regularMarketOpen"]["raw"]
-            volume = clean["regularMarketVolume"]["raw"]
-            setattr(self,"last_updated",last_updated)
-            setattr(self,"price",openPrice)
-            setattr(self,"volume",volume)
-            setattr(self,"active",(volume > 0))
+            if self.listed == True or self.listed == None:
+                clean = response["result"][0]["price"]
+                last_updated = datetime.fromtimestamp(clean["regularMarketTime"])
+                openPrice = clean["regularMarketOpen"]["raw"]
+                volume = clean["regularMarketVolume"]["raw"]
+                setattr(self,"last_updated",last_updated)
+                setattr(self,"price",openPrice)
+                setattr(self,"volume",volume)
+                setattr(self,"active",(volume > 0))
+                setattr(self,"listed",True)
         except TypeError:
             if response['error']['code'] == 'Not Found':
                 setattr(self,"active",False)
+                setattr(self,"listed",False)
+        except KeyError:
+                setattr(self,"active",False)
+                setattr(self,"listed",False)
         self.save()
 
     def get_cashflows(self, quarterly=False):
@@ -66,6 +73,7 @@ class Decision(models.Model):
     closingPrice = models.FloatField(null=True, blank=True)
     confidence = models.FloatField(null=True, blank=True)
     tradeDate= models.DateField()
+    long = models.BooleanField()
     created_at= models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

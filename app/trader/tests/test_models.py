@@ -24,7 +24,7 @@ class ModelMethodTestCase(TestCase):
     def test_decision_str(self):
         """Test that the decision str method returns the ticker"""
         self.tradeDate = timezone.now().date()
-        self.decision = Decision.objects.create(stock=self.stock,algorithm=self.algo,openPrice=10,confidence=.2,tradeDate=self.tradeDate)
+        self.decision = Decision.objects.create(stock=self.stock,algorithm=self.algo,openPrice=10,confidence=.2,tradeDate=self.tradeDate, long=True)
         self.assertEqual(str(self.stock) + ' on ' + str(self.tradeDate), self.decision.__str__())
 
     def test_update_stock_info(self):

@@ -14,7 +14,7 @@ def begin_day(n):
     from trader.models import Decision, Algorithm, Stock
     from user.models import User
     algo = Algorithm.objects.get_or_create(name="Z-score daytrader",public=True)
-    stocks = Stock.objects.filter(price__lt=100, price__gt=0).order_by('-volume')[:n]
+    stocks = Stock.objects.filter(price__lt=100, price__gt=0,listed=True).order_by('-volume')[:n]
     get_stock(algo[0], stocks)
     for item in User.objects.all():
         if item.email:
@@ -35,7 +35,7 @@ def send_email():
     for item in User.objects.all():
         if item.email:
             daily_email(item)
-    
+
 @app.task
 def get_stock_tickers():
     from trader.functions.helpers import get_stocklist_html
@@ -49,8 +49,6 @@ def get_stock_info(n):
     from trader.models import Stock
     get_stock_data(Stock.objects.all(), n)
 
-
-
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     #Decide which stocks to buy (using original algo) and send a mass mail every weekday at 9:32 am
@@ -60,4 +58,4 @@ def setup_periodic_tasks(sender, **kwargs):
     #Update list of all stocks every Sunday at 1 am
     sender.add_periodic_task(crontab(hour=1, minute=0, day_of_week='0'), get_stock_tickers, name='Get all NYSE and NASDAQ tickers')
     #Spend Sunday morning 2 am - 6am getting new stock information
-    sender.add_periodic_task(crontab(hour='2-6', minute=0, day_of_week='0'), get_stock_info(1500), name='Get updated information for all tickers listed')
+    sender.add_periodic_task(crontab(hour='2-6', minute=0, day_of_week='0'), get_stock_info(1500), name='Update information for tickers')

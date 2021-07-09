@@ -32,3 +32,6 @@ def get_tickers(exchange):
             if  len(ticker) >= 1 and len(ticker) < 6:
                 stocks.append({"name":name, "ticker":ticker,"exchange":exchange})
     return stocks 
+
+    def get_highest_performing():
+        pass

@@ -10,15 +10,13 @@ Do the following to run the project:
 1. Run the project in Docker:
     - docker-compose up -d --build (for development)
     - docker-compose -f docker-compose.prod.yml up -d --build (for production)
+1. Run commands inside Docker
+    - docker container ls
+    - docker exec -it <container_id> <command>
 
 1. Run coverage report
     1. coverage run --source='.' manage.py test
     1. coverage html
     1. The main report is in htmlcov/index.html
-
-1. Docker:
-    1. Production:
-        1. Build/up: 
-        1. Kill: docker-compose -f docker-compose.prod.yml down -v
 
 
