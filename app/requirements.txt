@@ -46,6 +46,7 @@ pyasn1-modules==0.2.8
 pycodestyle==2.7.0
 pycparser==2.20
 pyflakes==2.3.1
+PyHamcrest==2.0.2
 PyJWT==2.1.0
 pyOpenSSL==20.0.1
 python-dateutil==2.8.1
@@ -71,5 +72,5 @@ vine==5.0.0
 watchgod==0.7
 wcwidth==0.2.5
 websockets==9.1
-yfinance==0.1.59
+yfinance==0.1.62
 zope.interface==5.4.0

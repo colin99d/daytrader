@@ -1,6 +1,34 @@
+from datetime import datetime, date, timedelta, time
+from django.utils import timezone
 from datetime import datetime
 from django.db import models
 import requests
+
+def last_date(dt):
+    holidays = [date(2021,7,5),date(2021,9,6),date(2021,12,24),date(2022,1,17),date(2022,2,21),date(2022,4,15),date(2022,5,30),date(2022,7,4),
+        date(2022,9,5),date(2022,12,26),date(2023,1,2),date(2023,1,16),date(2023,2,20),date(2023,4,7),date(2023,5,29),date(2023,7,4),
+        date(2023,9,4),date(2023,12,25)]
+    if dt.date() in holidays:
+        dt = dt - timedelta(days=1)
+    weekday = dt.weekday()
+    currTime = dt.time()
+    if weekday == 5:
+        lastDate = (dt - timedelta(days=1)).date()
+        close = True
+    elif weekday == 6:
+        lastDate = (dt - timedelta(days=2)).date()
+        close = True
+    else:
+        if currTime > time(16,0,0):
+            lastDate = dt.date()
+            close = True
+        elif currTime > time(9,30,0):
+            lastDate = dt.date()
+            close = False
+        else:
+            lastDate = (dt - timedelta(days=1)).date()
+            close = True
+    return lastDate, close
 
 # Create your models here.
 class Stock(models.Model):
@@ -19,32 +47,42 @@ class Stock(models.Model):
 
     def update_stock_info(self):
         ticker = self.ticker
-        url = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+ ticker +'?modules=price'
-        response = requests.get(url).json()["quoteSummary"]
+        url = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/'+ ticker +'?modules=price'
+        headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36' }
+        query = requests.get(url, headers=headers)
         try:
             if self.listed == True or self.listed == None:
-                clean = response["result"][0]["price"]
+                response = query.json()
+                clean = response["quoteSummary"]["result"][0]["price"]
                 last_updated = datetime.fromtimestamp(clean["regularMarketTime"])
                 openPrice = clean["regularMarketOpen"]["raw"]
                 volume = clean["regularMarketVolume"]["raw"]
                 setattr(self,"last_updated",last_updated)
                 setattr(self,"price",openPrice)
                 setattr(self,"volume",volume)
-                setattr(self,"active",(volume > 0))
-                setattr(self,"listed",True)
+                if last_updated.date() >= last_date(timezone.now())[0]:
+                    setattr(self,"active",(volume > 0))
+                    setattr(self,"listed",(volume > 0))
+                else:
+                    setattr(self,"active",False)
+                    setattr(self,"listed",False)
         except TypeError:
-            if response['error']['code'] == 'Not Found':
+            if response["quoteSummary"]['error']['code'] == 'Not Found':
                 setattr(self,"active",False)
                 setattr(self,"listed",False)
         except KeyError:
+                setattr(self,"active",False)
+                setattr(self,"listed",False)
+        except ValueError:
                 setattr(self,"active",False)
                 setattr(self,"listed",False)
         self.save()
 
     def get_cashflows(self, quarterly=False):
         ending = "cashflowStatementHistory" if quarterly == False else "cashflowStatementHistoryQuarterly"
+        headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36' }
         url = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+ self.ticker.upper() +'?modules='+ending
-        response = requests.get(url).json()
+        response = requests.get(url, headers=headers).json()
         try:
             items = response['quoteSummary']['result'][0][ending]['cashflowStatements']
             dictVals = [{"id": "Operating Cash Flows", "data": []},{"id": "Financing Cash Flows", "data": []},{"id": "Investing Cash Flows", "data": []}]

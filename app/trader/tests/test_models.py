@@ -45,3 +45,11 @@ class ModelMethodTestCase(TestCase):
                 self.assertEqual(stock.price, None)
                 self.assertEqual(stock.volume, None)
                 self.assertEqual(stock.last_updated, None)
+
+    def test_old_datetime_marked_delisted(self):
+        s1 = Stock.objects.create(ticker="AEGN")
+        s2= Stock.objects.create(ticker="APXTU")
+        s1.update_stock_info()
+        s2.update_stock_info()
+        self.assertTrue(Stock.objects.get(ticker="AEGN").listed == False)
+        self.assertTrue(Stock.objects.get(ticker="APXTU").listed == False)

@@ -24,13 +24,13 @@ class CeleryFeaturesTestCase(TestCase):
         s7 = Stock.objects.create(ticker = "CANO", volume=7000,price=56,listed=True)
         s8 = Stock.objects.create(ticker = "CMAX", volume=8000,price=200,listed=True)
         s9 = Stock.objects.create(ticker = "IWV", volume=20000,price=10,listed=False)
-        decisions = begin_day(2)
-        self.assertEqual(len(decisions),1)
-        self.assertTrue(decisions[0].openPrice > 0)
+        decisions = begin_day.delay(2)
+        self.assertEqual(len(decisions.get()),1)
+        self.assertTrue(decisions.get()[0].openPrice > 0)
         self.assertEqual(len(mail.outbox), 1)
-        self.assertTrue(decisions[0].stock == s7 or decisions[0].stock == s5)
+        self.assertTrue(decisions.get()[0].stock == s7 or decisions.get()[0].stock == s5)
 
-
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
     def test_begin_day_lots_more(self):
         """Test that the begin_day celery function adds a decision to the model and sends an email to the user and doesn't choose a price over 100"""
         User.objects.create_user('testUser','test@gmail.com','secure49password')
@@ -43,11 +43,11 @@ class CeleryFeaturesTestCase(TestCase):
         s7 = Stock.objects.create(ticker = "CANO", volume=7000,price=56,listed=True)
         s8 = Stock.objects.create(ticker = "CMAX", volume=8000,price=200,listed=True)
         s9 = Stock.objects.create(ticker = "IWV", volume=20000,price=10,listed=False)
-        decisions = begin_day(5)
-        self.assertEqual(len(decisions),1)
-        self.assertTrue(decisions[0].openPrice > 0)
+        decisions = begin_day.delay(5)
+        self.assertEqual(len(decisions.get()),1)
+        self.assertTrue(decisions.get()[0].openPrice > 0)
         self.assertEqual(len(mail.outbox), 1)
-        self.assertTrue(decisions[0].stock not in [s8,s6,s2,s9])
+        self.assertTrue(decisions.get()[0].stock not in [s8,s6,s2,s9])
 
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
@@ -60,20 +60,30 @@ class CeleryFeaturesTestCase(TestCase):
         Decision.objects.create(stock=s1,algorithm=a,openPrice=23.22,confidence=32.87,tradeDate=make_aware(datetime(2017, 10, 27, 12, 0)).date(), long=True)
         Decision.objects.create(stock=s2,algorithm=a,openPrice=23.22,confidence=32.87,tradeDate=make_aware(datetime(2018, 6, 8, 12, 0)).date(), long=True)
         Decision.objects.create(stock=s3,algorithm=a,openPrice=23.22,confidence=32.87,tradeDate=make_aware(datetime(2019, 12, 27, 12, 0)).date(), long=True)
-        decisions = end_day.apply().get()
-        closings = [x.closingPrice for x in decisions]
+        decisions = end_day.delay()
+        closings = [x.closingPrice for x in decisions.get()]
         for closing in closings:
             self.assertTrue(closing > 0)
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
     def test_get_tickers(self):
-        items = get_stock_tickers()
-        self.assertTrue(items.filter(exchange="NYSE").count() > 500)
-        self.assertTrue(items.filter(exchange="NASDAQ").count() > 500)
+        items = get_stock_tickers.delay()
+        self.assertTrue(items.get().filter(exchange="NYSE").count() > 500)
+        self.assertTrue(items.get().filter(exchange="NASDAQ").count() > 500)
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
     def test_update_ticker_information(self):
         for ticker in tickers:
             Stock.objects.create(ticker=ticker)
-        get_stock_info(4)
+        get_stock_info.delay(4)
         self.assertEqual(Stock.objects.filter(price__gt=0).count(),4)
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
+    def test_update_ticker_information_delists_properly(self):
+        Stock.objects.create(ticker="AEGN")
+        Stock.objects.create(ticker="APXTU")
+        items = get_stock_info.delay(2)
+        self.assertTrue(items.get().get(ticker="AEGN").listed == False)
+        self.assertTrue(items.get().get(ticker="AEGN").active == False)
+        self.assertTrue(items.get().get(ticker="APXTU").listed == False)
+        self.assertTrue(items.get().get(ticker="APXTU").active == False)

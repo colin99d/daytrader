@@ -4,7 +4,8 @@ import requests, re
 
 def valid_ticker(symbol):
     url = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+ symbol.upper() +'?modules=price'
-    response = requests.get(url).content.decode('utf-8')
+    headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36' }
+    response = requests.get(url, headers=headers).content.decode('utf-8')
     ticker = re.search('price', response)
     return False if ticker == None else True
 
@@ -33,5 +34,5 @@ def get_tickers(exchange):
                 stocks.append({"name":name, "ticker":ticker,"exchange":exchange})
     return stocks 
 
-    def get_highest_performing():
-        pass
+def get_highest_performing():
+    pass
