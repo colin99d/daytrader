@@ -1,11 +1,13 @@
+from .serializers import UserSerializer, UserSerializerWithToken
+from rest_framework.authtoken.views import ObtainAuthToken
+from trader.serializers import AlgorithmSerializer
+from rest_framework.authtoken.models import Token
 from rest_framework import permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import UserSerializer, UserSerializerWithToken
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
-from rest_framework.response import Response
+from trader.models import Algorithm
+
 
 
 @api_view(['GET'])
@@ -14,6 +16,15 @@ def current_user(request):
     
     serializer = UserSerializer(request.user)
     return Response(serializer.data)
+
+@api_view(['GET'])
+def update_user_algo(request):
+    """Change the user's chosen algorithm"""
+    algoId = request.GET.get('algo', '')
+    algo = Algorithm.objects.get(pk=algoId)
+    setattr(request.user,"selected_algo",algo)
+    request.user.save()
+    return Response(UserSerializer(request.user).data)
 
 
 class UserList(APIView):

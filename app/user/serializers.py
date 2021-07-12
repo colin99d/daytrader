@@ -1,11 +1,14 @@
+from trader.serializers import AlgorithmSerializer
 from rest_framework import serializers
 from user.models import User
 
-class UserSerializer(serializers.ModelSerializer):
 
+class UserSerializer(serializers.ModelSerializer):
+    selected_algo = AlgorithmSerializer()
+    
     class Meta:
         model = User
-        fields = ('username','id','daily_emails')
+        fields = ('username','id','daily_emails','selected_algo','daily_emails')
 
 
 class UserSerializerWithToken(serializers.ModelSerializer):

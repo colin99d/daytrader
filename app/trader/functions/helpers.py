@@ -1,3 +1,4 @@
+from .scrapers import get_lowest_performing, get_highest_performing
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import get_template
 from datetime import timedelta, time, date
@@ -44,21 +45,26 @@ def last_date(dt):
     currTime = dt.time()
     if weekday == 5:
         lastDate = (dt - timedelta(days=1)).date()
+        nextDate = (dt + timedelta(days=2)).date()
         close = True
     elif weekday == 6:
         lastDate = (dt - timedelta(days=2)).date()
+        nextDate = (dt + timedelta(days=1)).date()
         close = True
     else:
         if currTime > time(16,0,0):
             lastDate = dt.date()
+            nextDate = (dt + timedelta(days=1)).date()
             close = True
         elif currTime > time(9,30,0):
             lastDate = dt.date()
+            nextDate = dt.date()
             close = False
         else:
             lastDate = (dt - timedelta(days=1)).date()
+            nextDate = dt.date()
             close = True
-    return lastDate, close
+    return lastDate, close, nextDate
 
 def get_closing():
     from trader.models import Decision
@@ -113,3 +119,15 @@ def get_stock_data(stocks, n):
             item.update_stock_info()
         elif (timezone.now() - item.last_updated) > timedelta(days=6):
             item.update_stock_info()
+
+def get_highest_lowest():
+    from trader.models import Decision, Stock, Algorithm
+    last = last_date(timezone.now())[2]
+    highest = get_highest_performing()
+    lowest = get_lowest_performing()
+    algo1 = Algorithm.objects.create(name="Buy previous day's biggest gainer")
+    algo2 = Algorithm.objects.create(name="Buy previous day's biggest loser")
+    stock1 = Stock.objects.get_or_create(ticker=highest.upper())[0]
+    stock2 = Stock.objects.get_or_create(ticker=lowest.upper())[0]
+    Decision.objects.create(stock=stock1,algorithm=algo1,tradeDate=last,long=True)
+    Decision.objects.create(stock=stock2,algorithm=algo2,tradeDate=last,long=True)
