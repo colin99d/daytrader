@@ -2,6 +2,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Stock, Algorithm, Decision
 from rest_framework import serializers
 
+
 class StockSerializer(serializers.ModelSerializer):
     permission_classes = (IsAuthenticated,) 
     class Meta:
@@ -9,7 +10,13 @@ class StockSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class AlgorithmSerializer(serializers.ModelSerializer):
-    permission_classes = (IsAuthenticated,) 
+    permission_classes = (IsAuthenticated,)
+    user_selected = serializers.SerializerMethodField('get_selected')
+
+    def get_selected(self, obj):
+        request = self.context.get('request', None)
+        return obj == request.user.selected_algo
+
     class Meta:
         model = Algorithm
         fields = '__all__'

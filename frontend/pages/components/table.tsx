@@ -30,11 +30,8 @@ class Table extends Component<TableProps, {}> {
 
     render() {
       return (
-        <div className="container mx-auto px-4 sm:px-8">
+        <div>
             <div className="py-8">
-                <div>
-                    <h2 className="text-2xl font-semibold leading-tight">Past Picks</h2>
-                </div>
                 <div className="-mx-4 sm:-mx-8 px-4 sm:px-8 py-4">
                     <div className="inline-block shadow rounded-lg min-w-full">
                         <table className="min-w-full">
@@ -45,7 +42,6 @@ class Table extends Component<TableProps, {}> {
                                     <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-xs font-semibold text-gray-600 uppercase text-left">Open</th>
                                     <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-xs font-semibold text-gray-600 uppercase text-left">Close</th>
                                     <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-xs font-semibold text-gray-600 uppercase text-left">Gain</th>
-                                    <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-xs font-semibold text-gray-600 uppercase text-left">Confidence</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -54,10 +50,11 @@ class Table extends Component<TableProps, {}> {
                                     <tr key={item.id}>
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.tradeDate}</td>
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.stock.ticker}</td>
-                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">${this.round(item.openPrice,3)}</td>
-                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">${this.round(item.closingPrice,3)}</td>
-                                        <td className={"px-5 py-5 border-b border-gray-200 bg-white text-sm " + (item.closingPrice > item.openPrice ? "text-green-500" : "text-red-500")}>{this.round(((item.closingPrice - item.openPrice)/item.openPrice)*100,2)}%</td>
-                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.confidence}%</td>
+                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.openPrice ? "$" + this.round(item.openPrice,3) : "--"}</td>
+                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.closingPrice ? "$" + this.round(item.closingPrice,3) : "--"}</td>
+                                        <td className={"px-5 py-5 border-b border-gray-200 bg-white text-sm " + (item.closingPrice > item.openPrice ? "text-green-500" : "text-red-500")}>
+                                            {item.closingPrice ? this.round(((item.closingPrice - item.openPrice)/item.openPrice)*100,2) + "%" : "N/A"}
+                                        </td>
                                     </tr>
                                 ) : null}
                             </tbody>

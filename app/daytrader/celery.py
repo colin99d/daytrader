@@ -9,6 +9,7 @@ app = Celery('daytrader')
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks()
 
+
 @app.task(serializer='json')
 def begin_day(n):
     from trader.functions.helpers import daily_email, get_stock
@@ -43,6 +44,12 @@ def get_stock_info(n):
     get_stock_data(Stock.objects.all(), n)
     return serializers.serialize('json', Stock.objects.all())
 
+@app.task(serializer='json')
+def get_high_and_low():
+    from trader.models import Decision
+    from trader.functions.helpers import get_highest_lowest
+    get_highest_lowest()
+    return serializers.serialize('json', Decision.objects.all())
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):

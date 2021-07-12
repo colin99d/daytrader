@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import Modal from './algoModal';
 
 type stock = {id: number, ticker: string};
 type algorithm = {
@@ -7,32 +8,46 @@ type algorithm = {
     description: string,
     public: boolean,
     created_at: Date,
+    user_selected: boolean
   }
-type decision = {
-  id: number, 
-  stock: stock, 
-  algorithm:algorithm,
-  openPrice: number,
-  closingPrice: number,
-  confidence: number,
-  tradeDate: Date,
-  created_at: Date
-}
+  type decision = {
+    id: number, 
+    stock: stock, 
+    algorithm:algorithm,
+    openPrice: number,
+    closingPrice: number,
+    confidence: number,
+    tradeDate: Date,
+    created_at: Date
+  }
 
 type TableProps = {
-    algorithms: algorithm[]
+    algorithms: algorithm[],
+    decisions: decision[],
+    baseUrl: string,
+    getFetch: (endpoint:string, state: "stocks" | "decisions" | "algorithms") => void
   }
 
-class Table extends Component<TableProps, {}> {
+type TableState = {
+    activeAlgo: number
+}
+
+class Table extends Component<TableProps, TableState> {
     constructor(props: any) {
         super(props);
         this.state = {
+            activeAlgo: null,
         };
+        this.handleClick = this.handleClick.bind(this);
       }
 
     round(value: number, decimals: number) {
         return Number(Math.round(Number(value+'e'+decimals))+'e-'+decimals);
       }
+
+    handleClick(id:number) {
+        this.setState({activeAlgo:id})
+    }
 
     render() {
       return (
@@ -53,7 +68,7 @@ class Table extends Component<TableProps, {}> {
                             <tbody>
                                 
                                 {this.props.algorithms ? this.props.algorithms.map((item:algorithm )=> 
-                                    <tr key={item.id}>
+                                    <tr key={item.id} onClick={() => this.handleClick(item.id)}>
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.name}</td>
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.description}</td>
                                     </tr>
@@ -63,6 +78,8 @@ class Table extends Component<TableProps, {}> {
                     </div>
                 </div>
             </div>
+            <Modal activeAlgo={this.state.activeAlgo} handleClick={this.handleClick} algorithm={this.state.activeAlgo ? this.props.algorithms.filter(item => item.id == this.state.activeAlgo)[0] : null}
+            decisions={this.props.decisions ? this.props.decisions.filter(item => item.algorithm.id == this.state.activeAlgo) : null} baseUrl={this.props.baseUrl} getFetch={this.props.getFetch}/>
         </div>
   )
 }

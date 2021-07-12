@@ -98,7 +98,7 @@ class Stock(models.Model):
 class Algorithm(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True,null=True)
-    public = models.BooleanField()
+    public = models.BooleanField(default=True)
     created_at= models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -107,7 +107,7 @@ class Algorithm(models.Model):
 class Decision(models.Model):
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE)
-    openPrice = models.FloatField()
+    openPrice = models.FloatField(null=True, blank=True)
     closingPrice = models.FloatField(null=True, blank=True)
     confidence = models.FloatField(null=True, blank=True)
     tradeDate= models.DateField()

@@ -9,12 +9,19 @@ import Error from './components/error';
 
 type pageOpts = "home" | "algorithm" | "chat" | "login" | "signup"
 type stock = {id: number, ticker: string};
-type algorithms = {id: number, name: string};
+type algorithm = {
+  id: number,
+  name: string,
+  description: string,
+  public: boolean,
+  created_at: Date,
+  user_selected: boolean
+}
 type login = {password: string, username: string};
 type decision = {
   id: number, 
   stock: stock, 
-  algorithm:algorithms,
+  algorithm:algorithm,
   openPrice: number,
   closingPrice: number,
   confidence: number,
@@ -28,14 +35,6 @@ type signup = {
   first_name: string,
   last_name: string,
   email: string
-}
-
-type algorithm = {
-  id: number,
-  name: string,
-  description: string,
-  public: boolean,
-  created_at: Date,
 }
 
 type HomeState = {
@@ -87,7 +86,14 @@ class App extends Component<{}, HomeState> {
       );
   }
 
-  handleClick (arg:pageOpts) {this.setState({page:arg})}
+  handleClick (arg:pageOpts) {
+    if ((arg == "home" || arg == "algorithm" || arg == "chat" ) && !this.state.loggedIn) {
+      
+    } else {
+      this.setState({page:arg})
+    }
+    
+  }
 
 
   componentDidMount() {
@@ -179,7 +185,8 @@ class App extends Component<{}, HomeState> {
     if (this.state.page =="home" && this.state.loggedIn) {
       viewPage = <Home stocks={this.state.stocks} baseUrl={this.state.baseUrl} getFetch={this.getFetch}/>;
     } else if (this.state.page == "algorithm" && this.state.loggedIn) {
-      viewPage = <AlgoTable algorithms={this.state.algorithms}/>;
+      viewPage = <AlgoTable algorithms={this.state.algorithms} decisions={this.state.decisions} 
+      baseUrl={this.state.baseUrl} getFetch={this.getFetch}/>;
     } else if (this.state.page == "chat" && this.state.loggedIn) {
       viewPage = <Chat baseUrl={this.state.baseUrl} userId={this.state.userId}/>
     } else if (this.state.page == "login" && !this.state.loggedIn) {

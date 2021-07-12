@@ -1,11 +1,11 @@
-from trader.functions.helpers import last_date, get_stock_data
-from trader.functions.scrapers import valid_ticker
+from trader.functions.scrapers import valid_ticker, get_highest_performing, get_lowest_performing
+from trader.functions.helpers import last_date, get_stock_data, get_highest_lowest
+from trader.models import Stock, Decision, Algorithm
 from trader.templatetags.filter import growth
 from django.utils.timezone import make_aware
 from django.test import TransactionTestCase
 from datetime import datetime, timedelta
 from django.utils import timezone
-from trader.models import Stock
 import random
 
 class HelpersTestCase(TransactionTestCase):
@@ -26,7 +26,7 @@ class HelpersTestCase(TransactionTestCase):
         dates = [date1, date2, date3, date4, date5]
         results = []
         for date in dates:
-            x, y = last_date(date)
+            x, y, z = last_date(date)
             results.append((x,y))
         self.assertEqual(results, [((date1 - timedelta(days=1)).date(),True),((date2 - timedelta(days=2)).date(),True),
             (date3.date(),True),(date4.date(),False),((date5 - timedelta(days=1)).date(),True)])
@@ -86,3 +86,22 @@ class HelpersTestCase(TransactionTestCase):
         self.assertTrue(Stock.objects.get(ticker="T").price == None)
         self.assertTrue(Stock.objects.get(ticker="IWV").price > 0)
         self.assertTrue(Stock.objects.get(ticker="NIO").price > 0)
+
+    def test_get_highest_performing(self):
+        highest = get_highest_performing()
+        self.assertTrue(isinstance(highest, str))
+        self.assertTrue(len(highest) > 0)
+        self.assertTrue(len(highest) < 6)
+
+    def test_get_lowest_performing(self):
+        lowest = get_lowest_performing()
+        self.assertTrue(isinstance(lowest, str))
+        self.assertTrue(len(lowest) > 0)
+        self.assertTrue(len(lowest) < 6)
+
+    def test_get_highest_lowest(self):
+        get_highest_lowest()
+        algo1 = Algorithm.objects.get(name="Buy previous day's biggest gainer")
+        algo2 = Algorithm.objects.get(name="Buy previous day's biggest loser")
+        self.assertEqual(Decision.objects.filter(algorithm=algo1).count(),1)
+        self.assertEqual(Decision.objects.filter(algorithm=algo2).count(),1)
