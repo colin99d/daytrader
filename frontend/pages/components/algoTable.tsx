@@ -50,6 +50,8 @@ class Table extends Component<TableProps, TableState> {
     }
 
     render() {
+        var is_selected:string = "px-5 py-5 border-b border-gray-200 bg-blue-500 text-sm text-white"
+        var not_selected:string = "px-5 py-5 border-b border-gray-200 bg-white text-sm"
       return (
         <div className="container mx-auto px-4 sm:px-8">
             <div className="py-8">
@@ -69,8 +71,8 @@ class Table extends Component<TableProps, TableState> {
                                 
                                 {this.props.algorithms ? this.props.algorithms.map((item:algorithm )=> 
                                     <tr key={item.id} onClick={() => this.handleClick(item.id)}>
-                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.name}</td>
-                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.description}</td>
+                                        <td className={item.user_selected ? is_selected : not_selected}>{item.name}</td>
+                                        <td className={item.user_selected ? is_selected : not_selected}>{item.description}</td>
                                     </tr>
                                 ) : null}
                             </tbody>

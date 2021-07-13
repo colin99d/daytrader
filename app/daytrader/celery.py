@@ -61,4 +61,6 @@ def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(crontab(hour=17, minute=0, day_of_week='5'), get_stock_tickers.delay(), name='Get all NYSE and NASDAQ tickers')
     #Spend Friday night to Monday morning getting new stock information
     sender.add_periodic_task(crontab(hour='*', minute=0, day_of_week='6,0'), get_stock_info.delay(150), name='Update information for tickers')
+    #Get the biggest gainer and loser from the previous day
+    sender.add_periodic_task(crontab(hour='17', minute=0, day_of_week='1-5'), get_high_and_low.delay(), name='Get biggest gainer and loser')
 

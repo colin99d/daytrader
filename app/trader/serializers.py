@@ -13,10 +13,6 @@ class AlgorithmSerializer(serializers.ModelSerializer):
     permission_classes = (IsAuthenticated,)
     user_selected = serializers.SerializerMethodField('get_selected')
 
-    def get_selected(self, obj):
-        request = self.context.get('request', None)
-        return obj == request.user.selected_algo
-
     class Meta:
         model = Algorithm
         fields = '__all__'
