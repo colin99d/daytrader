@@ -87,10 +87,10 @@ class Header extends Component<HeaderProps, {}> {
               <div className="absolute right-0 w-56 mt-2 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg outline-none" aria-labelledby="headlessui-menu-button-1" id="headlessui-menu-items-117" role="menu">
                 <div className="px-4 py-3">         
                   <p className="text-sm leading-5">Signed in as</p>
-                  <p className="text-sm font-medium leading-5 text-gray-900 truncate">{this.props.user.username} - {this.props.user.daily_emails ? "Subscribed" : "Not Subscribed"}</p>
+                  <p className="text-sm font-medium leading-5 text-gray-900 truncate">{this.props.user ? this.props.user.username : null} - {this.props.user ? this.props.user.daily_emails ? "Subscribed" : "Not Subscribed" : null}</p>
                 </div>
                 <div className="py-1">
-                  <a onClick={this.handleClick} href="#" tabIndex={1} className="text-gray-700 flex justify-between w-full px-4 py-2 text-sm leading-5 text-left"  role="menuitem">{this.props.user.daily_emails ? "Unsubscribe" : "Subscribe"}</a>
+                  <a onClick={this.handleClick} href="#" tabIndex={1} className="text-gray-700 flex justify-between w-full px-4 py-2 text-sm leading-5 text-left"  role="menuitem">{this.props.user ? this.props.user.daily_emails ? "Unsubscribe" : "Subscribe" : null}</a>
                 </div>
                 <div className="py-1">
                   <a onClick={this.props.handleLogout} tabIndex={3} className="text-gray-700 flex justify-between w-full px-4 py-2 text-sm leading-5 text-left cursor-pointer"  role="menuitem">Sign out</a></div>
