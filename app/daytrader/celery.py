@@ -9,18 +9,36 @@ app = Celery('daytrader')
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks()
 
+#Helper tasks that are called by main tasks
+@app.task(serializer='json')
+def send_email(algo):
+    from trader.functions.helpers import daily_email
+    from trader.models import Algorithm
+    from user.models import User
+    algo = Algorithm.objects.get(pk=algo)
+    for item in User.objects.filter(daily_emails=True,selected_algo=algo):
+        if item.email:
+            daily_email(item)
+
+celery_send_email = send_email.s()
 
 @app.task(serializer='json')
+def get_open():
+    from trader.functions.helpers import get_opening
+    get_opening()
+
+get_open_price = get_open.s()
+
+#Main tasks
+@app.task(serializer='json')
 def begin_day(n):
-    from trader.functions.helpers import daily_email, get_stock
+    from trader.functions.helpers import get_stock
     from trader.models import Decision, Algorithm, Stock
-    from user.models import User
     algo = Algorithm.objects.get_or_create(name="Z-score daytrader",public=True)
     stocks = Stock.objects.filter(price__lt=100, price__gt=0,listed=True).order_by('-volume')[:n]
     get_stock(algo[0], stocks)
-    for item in User.objects.all():
-        if item.email:
-            daily_email(item)
+    celery_send_email(algo[0].pk)
+    get_open_price()
     return serializers.serialize('json', Decision.objects.all())
 
 @app.task(serializer='json')
@@ -46,9 +64,13 @@ def get_stock_info(n):
 
 @app.task(serializer='json')
 def get_high_and_low():
-    from trader.models import Decision
+    from trader.models import Decision, Algorithm
     from trader.functions.helpers import get_highest_lowest
     get_highest_lowest()
+    algo1 = Algorithm.objects.get(name="Buy previous day's biggest gainer")
+    algo2 = Algorithm.objects.get(name="Buy previous day's biggest loser")
+    celery_send_email(algo1.pk)
+    celery_send_email(algo2.pk)
     return serializers.serialize('json', Decision.objects.all())
 
 @app.on_after_configure.connect

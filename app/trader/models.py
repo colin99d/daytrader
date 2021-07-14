@@ -116,3 +116,6 @@ class Decision(models.Model):
 
     def __str__(self):
         return str(self.stock) + ' on ' + str(self.tradeDate)
+
+    class Meta:
+        ordering = ['created_at']

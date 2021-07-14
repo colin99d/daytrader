@@ -1,4 +1,4 @@
-from daytrader.celery import begin_day, end_day, get_stock_tickers, get_stock_info, get_high_and_low
+from daytrader.celery import begin_day, end_day, get_stock_tickers, get_stock_info, get_high_and_low, send_email
 from trader.models import Algorithm, Decision, Stock
 from django.test.utils import override_settings
 from django.utils.timezone import make_aware
@@ -93,11 +93,9 @@ class CeleryFeaturesTestCase(TestCase):
         Stock.objects.create(ticker="APXTU")
         items = get_stock_info.delay(2)
         items = json.loads(items.get())
-        print(items)
-        self.assertTrue(items.get().get(ticker="AEGN").listed == False)
-        self.assertTrue(items.get().get(ticker="AEGN").active == False)
-        self.assertTrue(items.get().get(ticker="APXTU").listed == False)
-        self.assertTrue(items.get().get(ticker="APXTU").active == False)
+        for item in items:
+            self.assertTrue(item["fields"]["active"] == False)
+            self.assertTrue(item["fields"]["listed"] == False)
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
     def test_get_high_and_low(self):
@@ -106,3 +104,53 @@ class CeleryFeaturesTestCase(TestCase):
         stocks = [x["fields"]["stock"] for x in items]
         for item in stocks:
             self.assertTrue(item > 0)
+
+    
+    def test_begin_day_gets_open_price(self):
+        stock = Stock.objects.create(ticker="T", listed=True)
+        for ticker in ["AAPL","GME","TSLA","CMAX","CANO"]:
+            Stock.objects.create(ticker=ticker, listed=True)
+        algo = Algorithm.objects.create(name="Buy previous day's biggest gainer")
+        Decision.objects.create(stock=stock, algorithm=algo, tradeDate=make_aware(datetime(2021, 7, 6, 12, 0)), long=True)
+        Decision.objects.create(stock=stock, algorithm=algo, tradeDate=make_aware(datetime(2021, 7, 7, 12, 0)), long=True)
+        Decision.objects.create(stock=stock, algorithm=algo, tradeDate=make_aware(datetime(2021, 7, 8, 12, 0)), long=True)
+        decisions = begin_day.delay(5)
+        decisions = json.loads(decisions.get())
+        for decision in decisions:
+            print('----------')
+            print(decision["fields"]["tradeDate"])
+            print(decision["fields"]["openPrice"])
+        for decision in decisions:
+            self.assertTrue(decision['fields']['openPrice'] > 0)
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
+    def test_email_only_sends_on_matching_algo(self):
+        """Tests that users only receive an email if they chose the selected algorithm"""
+        algo1 = Algorithm.objects.create(name="Test the algo")
+        algo2 = Algorithm.objects.create(name="Test this algo also")
+        user = User.objects.create_user('testUser','test@gmail.com','secure49password')
+        setattr(user,"selected_algo",algo1)
+        setattr(user,"daily_emails",True)
+        user.save()
+        send_email.delay(algo2.pk)
+        self.assertEqual(len(mail.outbox), 0)
+        send_email.delay(algo1.pk)
+        self.assertEqual(len(mail.outbox), 1)
+
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
+    def test_email_only_sends_to_daily_emails_true(self):
+        """Tests that users only receive an email if they chose to receive emails"""
+        algo1 = Algorithm.objects.create(name="Test the algo")
+        user1 = User.objects.create_user('testUser','test@gmail.com','secure49password')
+        user2 = User.objects.create_user('testUser2','test2@gmail.com','secure249password')
+        user3 = User.objects.create_user('testUser3','test3@gmail.com','secure349password')
+        setattr(user1,"daily_emails",True)
+        setattr(user1,"selected_algo",algo1)
+        user1.save()
+        setattr(user2,"daily_emails",False)
+        setattr(user2,"selected_algo",algo1)
+        user2.save()
+        setattr(user3,"selected_algo",algo1)
+        user3.save()
+        send_email.delay(algo1.pk)
+        self.assertEqual(len(mail.outbox), 1)
