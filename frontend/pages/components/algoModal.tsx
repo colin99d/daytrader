@@ -11,7 +11,12 @@ type algorithm = {
     description: string,
     public: boolean,
     created_at: Date,
-    user_selected: boolean
+  }
+  type user_type = {
+    username: string,
+    id: number,
+    selected_algo: algorithm,
+    daily_emails: boolean
   }
 
   type decision = {
@@ -31,7 +36,7 @@ type ModalProps ={
     handleClick: (id:number) => void,
     decisions: decision[],
     baseUrl: string,
-    getFetch: (endpoint:string, state: "stocks" | "decisions" | "algorithms") => void
+    updateUser: (object: user_type) => void,
 }
 
 class Modal extends Component<ModalProps, {}> {
@@ -44,7 +49,7 @@ class Modal extends Component<ModalProps, {}> {
     }
 
     updateUser() {
-        fetch(this.props.baseUrl + "/user/update_user?algo=" + this.props.activeAlgo.toString(),  {
+        fetch(this.props.baseUrl + "/user/update_algo?algo=" + this.props.activeAlgo.toString(),  {
             headers: {Authorization: `Token ${localStorage.getItem('token')}`}
           })
             .then(response => {
@@ -55,9 +60,9 @@ class Modal extends Component<ModalProps, {}> {
               }
               return response.json();
             })
-            .then(() => {
-                this.props.getFetch("/api/algorithms/", "algorithms")}
-        )
+            .then((json) => {
+                this.props.updateUser(json);
+            })
     }
 
     

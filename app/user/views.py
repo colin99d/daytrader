@@ -1,6 +1,5 @@
 from .serializers import UserSerializer, UserSerializerWithToken
 from rest_framework.authtoken.views import ObtainAuthToken
-from trader.serializers import AlgorithmSerializer
 from rest_framework.authtoken.models import Token
 from rest_framework import permissions, status
 from rest_framework.decorators import api_view
@@ -23,6 +22,15 @@ def update_user_algo(request):
     algoId = request.GET.get('algo', '')
     algo = Algorithm.objects.get(pk=algoId)
     setattr(request.user,"selected_algo",algo)
+    request.user.save()
+    return Response(UserSerializer(request.user).data)
+
+@api_view(['GET'])
+def update_user_email(request):
+    """Toggle whether the user gets emails"""
+    email = request.user.daily_emails
+    new_status = False if email else True
+    setattr(request.user,"daily_emails",new_status)
     request.user.save()
     return Response(UserSerializer(request.user).data)
 
@@ -53,5 +61,7 @@ class CustomAuthToken(ObtainAuthToken):
             'token': token.key,
             'username': user.username,
             'email': user.email,
-            'id': user.id
+            'id': user.id,
+            'selected_algo': user.selected_algo,
+            'daily_emails': user.daily_emails
         })

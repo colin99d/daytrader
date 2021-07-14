@@ -8,7 +8,12 @@ type algorithm = {
     description: string,
     public: boolean,
     created_at: Date,
-    user_selected: boolean
+  }
+  type user_type = {
+    username: string,
+    id: number,
+    selected_algo: algorithm,
+    daily_emails: boolean
   }
   type decision = {
     id: number, 
@@ -25,7 +30,8 @@ type TableProps = {
     algorithms: algorithm[],
     decisions: decision[],
     baseUrl: string,
-    getFetch: (endpoint:string, state: "stocks" | "decisions" | "algorithms") => void
+    updateUser: (object: user_type) => void,
+    algo: number
   }
 
 type TableState = {
@@ -71,8 +77,8 @@ class Table extends Component<TableProps, TableState> {
                                 
                                 {this.props.algorithms ? this.props.algorithms.map((item:algorithm )=> 
                                     <tr key={item.id} onClick={() => this.handleClick(item.id)}>
-                                        <td className={item.user_selected ? is_selected : not_selected}>{item.name}</td>
-                                        <td className={item.user_selected ? is_selected : not_selected}>{item.description}</td>
+                                        <td className={item.id == this.props.algo ? is_selected : not_selected}>{item.name}</td>
+                                        <td className={item.id == this.props.algo ? is_selected : not_selected}>{item.description}</td>
                                     </tr>
                                 ) : null}
                             </tbody>
@@ -81,7 +87,7 @@ class Table extends Component<TableProps, TableState> {
                 </div>
             </div>
             <Modal activeAlgo={this.state.activeAlgo} handleClick={this.handleClick} algorithm={this.state.activeAlgo ? this.props.algorithms.filter(item => item.id == this.state.activeAlgo)[0] : null}
-            decisions={this.props.decisions ? this.props.decisions.filter(item => item.algorithm.id == this.state.activeAlgo) : null} baseUrl={this.props.baseUrl} getFetch={this.props.getFetch}/>
+            decisions={this.props.decisions ? this.props.decisions.filter(item => item.algorithm.id == this.state.activeAlgo) : null} baseUrl={this.props.baseUrl} updateUser={this.props.updateUser}/>
         </div>
   )
 }

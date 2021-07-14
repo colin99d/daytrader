@@ -1,5 +1,5 @@
 from trader.functions.scrapers import valid_ticker, get_highest_performing, get_lowest_performing
-from trader.functions.helpers import last_date, get_stock_data, get_highest_lowest
+from trader.functions.helpers import last_date, get_stock_data, get_highest_lowest, get_opening
 from trader.models import Stock, Decision, Algorithm
 from trader.templatetags.filter import growth
 from django.utils.timezone import make_aware
@@ -105,3 +105,18 @@ class HelpersTestCase(TransactionTestCase):
         algo2 = Algorithm.objects.get(name="Buy previous day's biggest loser")
         self.assertEqual(Decision.objects.filter(algorithm=algo1).count(),1)
         self.assertEqual(Decision.objects.filter(algorithm=algo2).count(),1)
+
+    def test_get_highest_lowest_only_one(self):
+        get_highest_lowest()
+        get_highest_lowest()
+        algo1 = Algorithm.objects.get(name="Buy previous day's biggest gainer")
+        algo2 = Algorithm.objects.get(name="Buy previous day's biggest loser")
+        self.assertEqual(Decision.objects.filter(algorithm=algo1).count(),1)
+        self.assertEqual(Decision.objects.filter(algorithm=algo2).count(),1)
+
+    def test_get_open_price(self):
+        stock = Stock.objects.create(ticker="T", listed=True)
+        algo = Algorithm.objects.create(name="Buy previous day's biggest gainer")
+        Decision.objects.create(stock=stock, algorithm=algo, tradeDate=make_aware(datetime(2021, 7, 7, 12, 0)), long=True)
+        get_opening()
+        self.assertTrue(Decision.objects.get(stock=stock).openPrice > 0)

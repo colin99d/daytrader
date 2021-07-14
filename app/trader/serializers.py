@@ -11,7 +11,6 @@ class StockSerializer(serializers.ModelSerializer):
 
 class AlgorithmSerializer(serializers.ModelSerializer):
     permission_classes = (IsAuthenticated,)
-    user_selected = serializers.SerializerMethodField('get_selected')
 
     class Meta:
         model = Algorithm

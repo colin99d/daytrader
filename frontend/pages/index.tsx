@@ -15,7 +15,12 @@ type algorithm = {
   description: string,
   public: boolean,
   created_at: Date,
-  user_selected: boolean
+}
+type user_type = {
+  username: string,
+  id: number,
+  selected_algo: algorithm,
+  daily_emails: boolean
 }
 type login = {password: string, username: string};
 type decision = {
@@ -45,8 +50,7 @@ type HomeState = {
   error: string,
   baseUrl: string,
   loggedIn: boolean,
-  username: string,
-  userId: number
+  user: user_type
 }
 
 class App extends Component<{}, HomeState> {
@@ -58,16 +62,31 @@ class App extends Component<{}, HomeState> {
         decisions: null,
         algorithms: null,
         error: "",
-        baseUrl: 'http://192.168.1.72:1337',
+        baseUrl: 'http://127.0.0.1:8000',
         loggedIn: false,
-        username: '',
-        userId: null,
+        user: {
+          username: '',
+          id: null,
+          selected_algo: null,
+          daily_emails: null
+        }
+        
     };
     this.handleClick = this.handleClick.bind(this);
     this.handleLogin = this.handleLogin.bind(this);
     this.handleSignup = this.handleSignup.bind(this);
     this.handleLogout = this.handleLogout.bind(this);
+    this.updateUser = this.updateUser.bind(this);
     this.getFetch = this.getFetch.bind(this);
+  }
+
+  updateUser(object: user_type) {
+    this.setState({user: {
+      username: object.username,
+      id: object.id,
+      selected_algo: object.selected_algo,
+      daily_emails: object.daily_emails
+    }})
   }
 
   getFetch(endpoint:string, state: "stocks" | "decisions" | "algorithms") {
@@ -92,9 +111,7 @@ class App extends Component<{}, HomeState> {
     } else {
       this.setState({page:arg})
     }
-    
   }
-
 
   componentDidMount() {
     if (localStorage.getItem('token')) {
@@ -110,9 +127,7 @@ class App extends Component<{}, HomeState> {
           }
         })
         .then(json => {
-          console.log("We just reran token")
-          console.log(json)
-          this.setState({username: json.username, userId:json.id})
+          this.updateUser(json);
           this.getFetch("/api/decisions/", "decisions");
           this.getFetch("/api/algorithms/", "algorithms");
           this.setState({loggedIn: true, page: "home"})
@@ -142,11 +157,10 @@ class App extends Component<{}, HomeState> {
     })
       .then(json => {
         localStorage.setItem('token', json.token);
+        this.updateUser(json);
         this.setState({
           loggedIn: true,
-          username: json.username,
           page: "home",
-          userId: json.id
         }, () => {
           this.getFetch("/api/decisions/", "decisions");
           this.getFetch("/api/algorithms/", "algorithms");
@@ -165,10 +179,10 @@ class App extends Component<{}, HomeState> {
       .then(res => res.json())
       .then(json => {
         localStorage.setItem('token', json.token);
+        this.updateUser(json);
         this.setState({
           loggedIn: true,
-          username: json.username,
-          page: "home"
+          page: "home",
         },() => {
           this.getFetch("/api/decisions/", "decisions");
         });
@@ -177,18 +191,18 @@ class App extends Component<{}, HomeState> {
 
   handleLogout() {
     localStorage.removeItem('token');
-    this.setState({...this.state, loggedIn: false, username: '', page: "login" });
+    this.setState({...this.state, loggedIn: false, user: null, page: "login" });
   };
 
   render() {
     let viewPage;
     if (this.state.page =="home" && this.state.loggedIn) {
-      viewPage = <Home stocks={this.state.stocks} baseUrl={this.state.baseUrl} getFetch={this.getFetch}/>;
+      viewPage = <Home stocks={this.state.stocks} baseUrl={this.state.baseUrl} getFetch={this.getFetch} />;
     } else if (this.state.page == "algorithm" && this.state.loggedIn) {
       viewPage = <AlgoTable algorithms={this.state.algorithms} decisions={this.state.decisions} 
-      baseUrl={this.state.baseUrl} getFetch={this.getFetch}/>;
+      baseUrl={this.state.baseUrl} algo={this.state.user.selected_algo.id} updateUser={this.updateUser}/>;
     } else if (this.state.page == "chat" && this.state.loggedIn) {
-      viewPage = <Chat baseUrl={this.state.baseUrl} userId={this.state.userId}/>
+      viewPage = <Chat baseUrl={this.state.baseUrl} userId={this.state.user.id}/>
     } else if (this.state.page == "login" && !this.state.loggedIn) {
       viewPage = <Login handleLogin={this.handleLogin} handleClick={this.handleClick} baseUrl={this.state.baseUrl} error={this.state.error}/>
     } else if (this.state.page == "signup" && !this.state.loggedIn) {
@@ -198,7 +212,8 @@ class App extends Component<{}, HomeState> {
     }
     return (
       <div className="absolute inset-0 bg-gray-200 pt-16">
-        <Header handleClick={this.handleClick} page={this.state.page} username={this.state.username} handleLogout={this.handleLogout}/>
+        <Header handleClick={this.handleClick} page={this.state.page} user={this.state.user} handleLogout={this.handleLogout} 
+        baseUrl={this.state.baseUrl} updateUser={this.updateUser}/>
         {viewPage}
       </div>
     )

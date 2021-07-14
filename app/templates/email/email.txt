@@ -1,7 +1,13 @@
+{% load filter %}
 Hello {{ username }},
 
-Today's stock pick is {{stock.stock.ticker}}. You should buy this stock immediately and sell at close tonight. 
+Today's stock pick from {{algorithm}} is {{stock.stock.ticker}}. You should buy this stock immediately and sell at close tonight. 
 We are {{stock.confidence}}% confident that this stock will increase in price. Below is an outline of our recent picks.
+
+    Ticker  Trade Date  Open  Close  Gain
+{% for item in stocks %}
+    {{item.stock.ticker}}  {{item.tradeDate | date:"m/d/y"}}  {{item.openPrice | floatformat:3}}  {{item.closingPrice | floatformat:3}}  {{item.openPrice | growth:item.closingPrice}}
+{% endfor %}
 
 Sincerely,
 

@@ -39,7 +39,7 @@ class Home extends Component<HomeProps, HomeState> {
         this.handleClick = this.handleClick.bind(this);
         this.handleErrors = this.handleErrors.bind(this);
       }
-      handleChange(e:any, formKey:"ticker") {this.setState({[formKey]: e.target.value})}
+    handleChange(e:any, formKey:"ticker") {this.setState({[formKey]: e.target.value})}
 
     handleErrors(response: any): any {
         if (!response.ok) {

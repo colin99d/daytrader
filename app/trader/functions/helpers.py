@@ -18,16 +18,16 @@ def daily_email(user):
     html = get_template('email/email.html')
 
     try:
-        stock = Decision.objects.latest('pk')
+        stock = Decision.objects.filter(algorithm=user.selected_algo).latest('pk')
     except ObjectDoesNotExist:
         stock = None
 
     try:
-        stocks = Decision.objects.all()
+        stocks = Decision.objects.filter(algorithm=user.selected_algo)
     except ObjectDoesNotExist:
         stocks = None
 
-    d = { 'username': user.first_name, 'stock': stock, 'stocks': stocks}
+    d = { 'username': user.first_name, 'stock': stock, 'stocks': stocks, 'algorithm':user.selected_algo}
 
     text_content = text.render(d)
     html_content = html.render(d)
@@ -79,6 +79,19 @@ def get_closing():
             setattr(decision, "closingPrice", closing)
             decision.save()
 
+def get_opening():
+    from trader.models import Decision
+    decisions = Decision.objects.filter(openPrice=None)
+    for decision in decisions:
+        ticker = decision.stock.ticker
+        tickDate = decision.tradeDate
+        if timezone.now().date() > tickDate or timezone.now().time() > time(16,0,0):
+            endDate = decision.tradeDate + timedelta(days=1)
+            result = yf.Ticker(ticker).history(start=tickDate, end=endDate)
+            opening = result["Open"].iloc[0]
+            setattr(decision, "openPrice", opening)
+            decision.save()
+
 def get_data(symbols):
     data = yf.download(symbols, period = "1y",interval = '1d' )
     for symbol in symbols:
@@ -123,11 +136,14 @@ def get_stock_data(stocks, n):
 def get_highest_lowest():
     from trader.models import Decision, Stock, Algorithm
     last = last_date(timezone.now())[2]
-    highest = get_highest_performing()
-    lowest = get_lowest_performing()
-    algo1 = Algorithm.objects.create(name="Buy previous day's biggest gainer")
-    algo2 = Algorithm.objects.create(name="Buy previous day's biggest loser")
-    stock1 = Stock.objects.get_or_create(ticker=highest.upper())[0]
-    stock2 = Stock.objects.get_or_create(ticker=lowest.upper())[0]
-    Decision.objects.create(stock=stock1,algorithm=algo1,tradeDate=last,long=True)
-    Decision.objects.create(stock=stock2,algorithm=algo2,tradeDate=last,long=True)
+    algo1 = Algorithm.objects.get_or_create(name="Buy previous day's biggest gainer")[0]
+    algo2 = Algorithm.objects.get_or_create(name="Buy previous day's biggest loser")[0]
+    if not Decision.objects.filter(tradeDate=last,algorithm=algo1).exists():
+        highest = get_highest_performing()
+        stock1 = Stock.objects.get_or_create(ticker=highest.upper())[0]
+        Decision.objects.create(stock=stock1,algorithm=algo1,tradeDate=last,long=True)
+    
+    if not Decision.objects.filter(tradeDate=last,algorithm=algo2).exists():
+        lowest = get_lowest_performing()
+        stock2 = Stock.objects.get_or_create(ticker=lowest.upper())[0]
+        Decision.objects.create(stock=stock2,algorithm=algo2,tradeDate=last,long=True)
