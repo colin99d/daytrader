@@ -23,7 +23,7 @@ services:
       - ./.env.prod.db
   celeryworker:
     build: ./app
-    command: celery -A daytrader worker
+    command: celery -A daytrader worker --loglevel=DEBUG
     volumes:
       - ./app:/usr/src/app
     env_file:
