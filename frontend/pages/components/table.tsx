@@ -6,10 +6,10 @@ type decision = {
   id: number, 
   stock: stock, 
   algorithm:algorithms,
-  openPrice: number,
-  closingPrice: number,
+  open_price: number,
+  closing_price: number,
   confidence: number,
-  tradeDate: Date,
+  trade_date: Date,
   created_at: Date
 }
 
@@ -48,12 +48,12 @@ class Table extends Component<TableProps, {}> {
                                 
                                 {this.props.decisions ? this.props.decisions.map((item:decision )=> 
                                     <tr key={item.id}>
-                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.tradeDate}</td>
+                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.trade_date}</td>
                                         <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.stock.ticker}</td>
-                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.openPrice ? "$" + this.round(item.openPrice,3) : "--"}</td>
-                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.closingPrice ? "$" + this.round(item.closingPrice,3) : "--"}</td>
-                                        <td className={"px-5 py-5 border-b border-gray-200 bg-white text-sm " + (item.closingPrice > item.openPrice ? "text-green-500" : "text-red-500")}>
-                                            {item.closingPrice ? this.round(((item.closingPrice - item.openPrice)/item.openPrice)*100,2) + "%" : "N/A"}
+                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.open_price ? "$" + this.round(item.open_price,3) : "--"}</td>
+                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.closing_price ? "$" + this.round(item.closing_price,3) : "--"}</td>
+                                        <td className={"px-5 py-5 border-b border-gray-200 bg-white text-sm " + (item.closing_price > item.open_price ? "text-green-500" : "text-red-500")}>
+                                            {item.closing_price ? this.round(((item.closing_price - item.open_price)/item.open_price)*100,2) + "%" : "N/A"}
                                         </td>
                                     </tr>
                                 ) : null}

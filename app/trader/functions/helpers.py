@@ -68,28 +68,28 @@ def last_date(dt):
 
 def get_closing():
     from trader.models import Decision
-    decisions = Decision.objects.filter(closingPrice=None)
+    decisions = Decision.objects.filter(closing_price=None)
     for decision in decisions:
         ticker = decision.stock.ticker
-        tickDate = decision.tradeDate
+        tickDate = decision.trade_date
         if timezone.now().date() > tickDate or timezone.now().time() > time(16,0,0):
-            endDate = decision.tradeDate + timedelta(days=1)
+            endDate = decision.trade_date + timedelta(days=1)
             result = yf.Ticker(ticker).history(start=tickDate, end=endDate)
             closing = result["Close"].iloc[0]
-            setattr(decision, "closingPrice", closing)
+            setattr(decision, "closing_price", closing)
             decision.save()
 
 def get_opening():
     from trader.models import Decision
-    decisions = Decision.objects.filter(openPrice=None)
+    decisions = Decision.objects.filter(open_price=None)
     for decision in decisions:
         ticker = decision.stock.ticker
-        tickDate = decision.tradeDate
+        tickDate = decision.trade_date
         if timezone.now().date() > tickDate or timezone.now().time() > time(16,0,0):
-            endDate = decision.tradeDate + timedelta(days=1)
+            endDate = decision.trade_date + timedelta(days=1)
             result = yf.Ticker(ticker).history(start=tickDate, end=endDate)
             opening = result["Open"].iloc[0]
-            setattr(decision, "openPrice", opening)
+            setattr(decision, "open_price", opening)
             decision.save()
 
 def get_data(symbols):
@@ -106,14 +106,14 @@ def get_data(symbols):
 def get_stock(algo, stocks):
     from trader.models import Stock, Decision
     last = last_date(timezone.now())[0]
-    if not Decision.objects.filter(tradeDate=last,algorithm=algo).exists():
+    if not Decision.objects.filter(trade_date=last,algorithm=algo).exists():
         symbols = [x.ticker for x in stocks]
         if len(symbols) > 0:
             data = get_data(symbols)
-            ticker, open, conf, tradeDate = z_score_analyzer(data, symbols)
-            if tradeDate == last:
+            ticker, open, conf, trade_date = z_score_analyzer(data, symbols)
+            if trade_date == last:
                 stock = Stock.objects.get(ticker=ticker)
-                Decision.objects.create(stock=stock,algorithm=algo, openPrice=open, confidence=conf, tradeDate=tradeDate, long=True)
+                Decision.objects.create(stock=stock,algorithm=algo, open_price=open, confidence=conf, trade_date=trade_date, long=True)
 
 def get_stocklist_html():
     nasdaq = get_tickers("NASDAQ")
@@ -138,12 +138,12 @@ def get_highest_lowest():
     last = last_date(timezone.now())[2]
     algo1 = Algorithm.objects.get_or_create(name="Buy previous day's biggest gainer")[0]
     algo2 = Algorithm.objects.get_or_create(name="Buy previous day's biggest loser")[0]
-    if not Decision.objects.filter(tradeDate=last,algorithm=algo1).exists():
+    if not Decision.objects.filter(trade_date=last,algorithm=algo1).exists():
         highest = get_highest_performing()
         stock1 = Stock.objects.get_or_create(ticker=highest.upper())[0]
-        Decision.objects.create(stock=stock1,algorithm=algo1,tradeDate=last,long=True)
+        Decision.objects.create(stock=stock1,algorithm=algo1,trade_date=last,long=True)
     
-    if not Decision.objects.filter(tradeDate=last,algorithm=algo2).exists():
+    if not Decision.objects.filter(trade_date=last,algorithm=algo2).exists():
         lowest = get_lowest_performing()
         stock2 = Stock.objects.get_or_create(ticker=lowest.upper())[0]
-        Decision.objects.create(stock=stock2,algorithm=algo2,tradeDate=last,long=True)
+        Decision.objects.create(stock=stock2,algorithm=algo2,trade_date=last,long=True)

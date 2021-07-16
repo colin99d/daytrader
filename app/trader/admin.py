@@ -11,7 +11,7 @@ class AlgorithmAdmin(admin.ModelAdmin):
     pass
 
 class DecisionHistroyAdmin(admin.ModelAdmin):
-    list_display = ["stock", "algorithm", "openPrice", "closingPrice","confidence","tradeDate"]
+    list_display = ["stock", "algorithm", "open_price", "closing_price","confidence","trade_date"]
 
 admin.site.register(Stock, StockAdmin)
 admin.site.register(Algorithm, AlgorithmAdmin)

@@ -6,7 +6,7 @@ We are {{stock.confidence}}% confident that this stock will increase in price. B
 
     Ticker  Trade Date  Open  Close  Gain
 {% for item in stocks %}
-    {{item.stock.ticker}}  {{item.tradeDate | date:"m/d/y"}}  {{item.openPrice | floatformat:3}}  {{item.closingPrice | floatformat:3}}  {{item.openPrice | growth:item.closingPrice}}
+    {{item.stock.ticker}}  {{item.trade_date | date:"m/d/y"}}  {{item.open_price | floatformat:3}}  {{item.closing_price | floatformat:3}}  {{item.open_price | growth:item.closing_price}}
 {% endfor %}
 
 Sincerely,

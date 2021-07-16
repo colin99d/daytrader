@@ -55,10 +55,10 @@ class Stock(models.Model):
                 response = query.json()
                 clean = response["quoteSummary"]["result"][0]["price"]
                 last_updated = datetime.fromtimestamp(clean["regularMarketTime"])
-                openPrice = clean["regularMarketOpen"]["raw"]
+                open_price = clean["regularMarketOpen"]["raw"]
                 volume = clean["regularMarketVolume"]["raw"]
                 setattr(self,"last_updated",last_updated)
-                setattr(self,"price",openPrice)
+                setattr(self,"price",open_price)
                 setattr(self,"volume",volume)
                 if last_updated.date() >= last_date(timezone.now())[0]:
                     setattr(self,"active",(volume > 0))
@@ -107,15 +107,15 @@ class Algorithm(models.Model):
 class Decision(models.Model):
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE)
-    openPrice = models.FloatField(null=True, blank=True)
-    closingPrice = models.FloatField(null=True, blank=True)
+    open_price = models.FloatField(null=True, blank=True)
+    closing_price = models.FloatField(null=True, blank=True)
     confidence = models.FloatField(null=True, blank=True)
-    tradeDate= models.DateField()
+    trade_date= models.DateField()
     long = models.BooleanField()
     created_at= models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return str(self.stock) + ' on ' + str(self.tradeDate)
+        return str(self.stock) + ' on ' + str(self.trade_date)
 
     class Meta:
         ordering = ['created_at']

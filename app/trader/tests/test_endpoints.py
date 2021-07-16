@@ -91,8 +91,8 @@ class APITests(APITestCase):
         s2 = Stock.objects.create(ticker="CMAX")
         a1 = Algorithm.objects.create(name="Buy low sell high", public=True)
         a2 = Algorithm.objects.create(name="Buy high sell low", public=False)
-        Decision.objects.create(stock=s1, algorithm=a1, openPrice=27.25, confidence=87.32, tradeDate=timezone.now().date(), long=True)
-        Decision.objects.create(stock=s2, algorithm=a2, openPrice=13.38, confidence=22.45, tradeDate=timezone.now().date(), long=True)
+        Decision.objects.create(stock=s1, algorithm=a1, open_price=27.25, confidence=87.32, trade_date=timezone.now().date(), long=True)
+        Decision.objects.create(stock=s2, algorithm=a2, open_price=13.38, confidence=22.45, trade_date=timezone.now().date(), long=True)
         url = reverse('decisions-list')
         response = self.make_request("GET",url, DecisionView)
         names = [x['stock']['ticker'] for x in json.loads(response.content)]
@@ -106,8 +106,8 @@ class APITests(APITestCase):
         a1 = Algorithm.objects.create(name="Buy low sell high", public=True)
         a2 = Algorithm.objects.create(name="Buy high sell low", public=False)
         url = reverse('decisions-list')
-        decisions = [{"stock": s1.id, "algorithm":a1.id,"openPrice":13.24,"confidence":36.89,"tradeDate":timezone.now().date(),"long":True},
-            {"stock": s2.id, "algorithm":a2.id,"openPrice":22.24,"confidence":0,"tradeDate":timezone.now().date(),"long":True}, {}] 
+        decisions = [{"stock": s1.id, "algorithm":a1.id,"open_price":13.24,"confidence":36.89,"trade_date":timezone.now().date(),"long":True},
+            {"stock": s2.id, "algorithm":a2.id,"open_price":22.24,"confidence":0,"trade_date":timezone.now().date(),"long":True}, {}] 
         responses = [self.make_request("POST",url, DecisionView, x).status_code for x in decisions]
         h201 = status.HTTP_201_CREATED
         h400 = status.HTTP_400_BAD_REQUEST

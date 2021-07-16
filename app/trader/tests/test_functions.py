@@ -117,6 +117,6 @@ class HelpersTestCase(TransactionTestCase):
     def test_get_open_price(self):
         stock = Stock.objects.create(ticker="T", listed=True)
         algo = Algorithm.objects.create(name="Buy previous day's biggest gainer")
-        Decision.objects.create(stock=stock, algorithm=algo, tradeDate=make_aware(datetime(2021, 7, 7, 12, 0)), long=True)
+        Decision.objects.create(stock=stock, algorithm=algo, trade_date=make_aware(datetime(2021, 7, 7, 12, 0)), long=True)
         get_opening()
-        self.assertTrue(Decision.objects.get(stock=stock).openPrice > 0)
+        self.assertTrue(Decision.objects.get(stock=stock).open_price > 0)

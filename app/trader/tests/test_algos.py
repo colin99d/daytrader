@@ -25,7 +25,7 @@ class AlgoTestCase(TransactionTestCase):
 
     def test_no_closing_price(self):
         """Tests that the stock getter does not set a closing price"""
-        self.assertIsNone(self.pick.closingPrice)
+        self.assertIsNone(self.pick.closing_price)
 
     def test_correct_open_price(self):
         """Tests that the open price matches Yahoo's open price"""
@@ -35,7 +35,7 @@ class AlgoTestCase(TransactionTestCase):
         soup = BeautifulSoup(page.content, 'html.parser')
         item = soup.find(attrs={"data-reactid": "103"})
         yahooOpen = float(item.text)
-        self.assertEqual(round(self.pick.openPrice,2), round(yahooOpen,2))
+        self.assertEqual(round(self.pick.open_price,2), round(yahooOpen,2))
 
     def test_no_second_pick(self):
         """Tests that the get_stock function blocks two stock picks in one day"""
@@ -69,9 +69,9 @@ class ClosingTestCase(TransactionTestCase):
         date(2023,9,4),date(2023,12,25)]
         
         if weekday < 5 and currTime > time(9,30,0) and currTime < time(16,0,0) and timezone.now().date not in holidays:
-            self.assertIsNone(self.pick.closingPrice)
+            self.assertIsNone(self.pick.closing_price)
         else:
-            self.assertTrue(self.pick.closingPrice > 0)
+            self.assertTrue(self.pick.closing_price > 0)
 
     def test_proper_closing_price(self):
         """Test that closing price matches Yahoo's closing price if market is closed"""

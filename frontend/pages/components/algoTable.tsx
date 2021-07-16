@@ -19,10 +19,10 @@ type algorithm = {
     id: number, 
     stock: stock, 
     algorithm:algorithm,
-    openPrice: number,
-    closingPrice: number,
+    open_price: number,
+    closing_price: number,
     confidence: number,
-    tradeDate: Date,
+    trade_date: Date,
     created_at: Date
   }
 

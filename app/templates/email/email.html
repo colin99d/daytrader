@@ -17,18 +17,18 @@ We are {{stock.confidence}}% confident that this stock will increase in price. B
     {% if forloop.counter|divisibleby:2 %}
         <tr style="background-color: #f2f2f2; color:black">
             <td style="border: 1px solid #ddd; padding: 8px;">{{item.stock.ticker}}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">{{item.tradeDate | date:"m/d/y"}}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">{{item.openPrice | floatformat:3}}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">{{item.closingPrice | floatformat:3}}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">{{item.openPrice | growth:item.closingPrice}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.trade_date | date:"m/d/y"}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.open_price | floatformat:3}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.closing_price | floatformat:3}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.open_price | growth:item.closing_price}}</td>
         </tr>
     {% else %}
         <tr style="background-color: #ECECEC; color:black">
             <td style="border: 1px solid #ddd; padding: 8px;">{{item.stock.ticker}}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">{{item.tradeDate | date:"m/d/y"}}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">{{item.openPrice | floatformat:3}}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">{{item.closingPrice | floatformat:3}}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">{{item.openPrice | growth:item.closingPrice}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.trade_date | date:"m/d/y"}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.open_price | floatformat:3}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.closing_price | floatformat:3}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{item.open_price | growth:item.closing_price}}</td>
         </tr>
     {% endif %}
 

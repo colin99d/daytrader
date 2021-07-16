@@ -28,7 +28,7 @@ class CeleryFeaturesTestCase(TestCase):
         decisions = begin_day.delay(2)
         decisions = json.loads(decisions.get())
         self.assertEqual(len(decisions),1)
-        self.assertTrue(decisions[0]["fields"]["openPrice"] > 0)
+        self.assertTrue(decisions[0]["fields"]["open_price"] > 0)
         self.assertEqual(len(mail.outbox), 1)
         stock = decisions[0]["fields"]["stock"]
         self.assertTrue(stock == s7.id or stock == s5.id)
@@ -49,7 +49,7 @@ class CeleryFeaturesTestCase(TestCase):
         decisions = begin_day.delay(5)
         decisions = json.loads(decisions.get())
         self.assertEqual(len(decisions),1)
-        self.assertTrue(decisions[0]["fields"]["openPrice"] > 0)
+        self.assertTrue(decisions[0]["fields"]["open_price"] > 0)
         self.assertEqual(len(mail.outbox), 1)
         stock = decisions[0]["fields"]["stock"]
         self.assertTrue(stock not in [x.id for x in [s8,s6,s2,s9]])
@@ -62,12 +62,12 @@ class CeleryFeaturesTestCase(TestCase):
         s2 = Stock.objects.create(ticker="TSLA")
         s3 = Stock.objects.create(ticker="AMC")
         a = Algorithm.objects.create(name="Basic algo", public=True)
-        Decision.objects.create(stock=s1,algorithm=a,openPrice=23.22,confidence=32.87,tradeDate=make_aware(datetime(2017, 10, 27, 12, 0)).date(), long=True)
-        Decision.objects.create(stock=s2,algorithm=a,openPrice=23.22,confidence=32.87,tradeDate=make_aware(datetime(2018, 6, 8, 12, 0)).date(), long=True)
-        Decision.objects.create(stock=s3,algorithm=a,openPrice=23.22,confidence=32.87,tradeDate=make_aware(datetime(2019, 12, 27, 12, 0)).date(), long=True)
+        Decision.objects.create(stock=s1,algorithm=a,open_price=23.22,confidence=32.87,trade_date=make_aware(datetime(2017, 10, 27, 12, 0)).date(), long=True)
+        Decision.objects.create(stock=s2,algorithm=a,open_price=23.22,confidence=32.87,trade_date=make_aware(datetime(2018, 6, 8, 12, 0)).date(), long=True)
+        Decision.objects.create(stock=s3,algorithm=a,open_price=23.22,confidence=32.87,trade_date=make_aware(datetime(2019, 12, 27, 12, 0)).date(), long=True)
         decisions = end_day.delay()
         decisions = json.loads(decisions.get())
-        closings = [x["fields"]["closingPrice"] for x in decisions]
+        closings = [x["fields"]["closing_price"] for x in decisions]
         for closing in closings:
             self.assertTrue(closing > 0)
 
@@ -111,17 +111,13 @@ class CeleryFeaturesTestCase(TestCase):
         for ticker in ["AAPL","GME","TSLA","CMAX","CANO"]:
             Stock.objects.create(ticker=ticker, listed=True)
         algo = Algorithm.objects.create(name="Buy previous day's biggest gainer")
-        Decision.objects.create(stock=stock, algorithm=algo, tradeDate=make_aware(datetime(2021, 7, 6, 12, 0)), long=True)
-        Decision.objects.create(stock=stock, algorithm=algo, tradeDate=make_aware(datetime(2021, 7, 7, 12, 0)), long=True)
-        Decision.objects.create(stock=stock, algorithm=algo, tradeDate=make_aware(datetime(2021, 7, 8, 12, 0)), long=True)
+        Decision.objects.create(stock=stock, algorithm=algo, trade_date=make_aware(datetime(2021, 7, 6, 12, 0)), long=True)
+        Decision.objects.create(stock=stock, algorithm=algo, trade_date=make_aware(datetime(2021, 7, 7, 12, 0)), long=True)
+        Decision.objects.create(stock=stock, algorithm=algo, trade_date=make_aware(datetime(2021, 7, 8, 12, 0)), long=True)
         decisions = begin_day.delay(5)
         decisions = json.loads(decisions.get())
         for decision in decisions:
-            print('----------')
-            print(decision["fields"]["tradeDate"])
-            print(decision["fields"]["openPrice"])
-        for decision in decisions:
-            self.assertTrue(decision['fields']['openPrice'] > 0)
+            self.assertTrue(decision['fields']['open_price'] > 0)
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
     def test_email_only_sends_on_matching_algo(self):
