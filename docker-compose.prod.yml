@@ -34,7 +34,7 @@ services:
       - postgres
   celerybeat:
     build: ./app
-    command: celery -A daytrader beat
+    command: celery -A daytrader beat --loglevel=DEBUG
     volumes:
       - ./app:/usr/src/app
     env_file:

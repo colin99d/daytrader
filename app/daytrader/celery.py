@@ -73,15 +73,18 @@ def get_high_and_low():
     celery_send_email(algo2.pk)
     return serializers.serialize('json', Decision.objects.all())
 
-@app.on_after_configure.connect
+
+
+@app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
     #Decide which stocks to buy (using original algo) and send a mass mail every weekday at 9:32 am
-    sender.add_periodic_task(crontab(hour=9, minute=32, day_of_week='1-5'), begin_day.delay(50), name='Get daily trade')
+    sender.add_periodic_task(crontab(hour=9, minute=32, day_of_week='1-5'), begin_day.s(50), name='Get daily trade')
     #Get closing prices for all stocks at 4:01 pm every weekday
-    sender.add_periodic_task(crontab(hour=16, minute=1, day_of_week='1-5'), end_day.delay(), name='Get closing price')
+    sender.add_periodic_task(crontab(hour=16, minute=1, day_of_week='1-5'), end_day.s(), name='Get closing price')
     #Update list of all stocks every Friday at 5 pm
-    sender.add_periodic_task(crontab(hour=17, minute=0, day_of_week='5'), get_stock_tickers.delay(), name='Get all NYSE and NASDAQ tickers')
+    sender.add_periodic_task(crontab(hour=17, minute=0, day_of_week='5'), get_stock_tickers.s(), name='Get all NYSE and NASDAQ tickers')
     #Spend Friday night to Monday morning getting new stock information
-    sender.add_periodic_task(crontab(hour='*', minute=0, day_of_week='6,0'), get_stock_info.delay(150), name='Update information for tickers')
+    sender.add_periodic_task(crontab(hour='*', minute=0, day_of_week='6,0'), get_stock_info.s(150), name='Update information for tickers')
     #Get the biggest gainer and loser from the previous day
-    sender.add_periodic_task(crontab(hour='17', minute=0, day_of_week='1-5'), get_high_and_low.delay(), name='Get biggest gainer and loser')
+    sender.add_periodic_task(crontab(hour='17', minute=0, day_of_week='1-5'), get_high_and_low.s(), name='Get biggest gainer and loser')
+    

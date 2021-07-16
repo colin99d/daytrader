@@ -1,12 +1,12 @@
 from .serializers import UserSerializer, UserSerializerWithToken
 from rest_framework.authtoken.views import ObtainAuthToken
+from trader.serializers import AlgorithmSerializer
 from rest_framework.authtoken.models import Token
 from rest_framework import permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from trader.models import Algorithm
-
 
 
 @api_view(['GET'])
@@ -62,6 +62,6 @@ class CustomAuthToken(ObtainAuthToken):
             'username': user.username,
             'email': user.email,
             'id': user.id,
-            'selected_algo': user.selected_algo,
+            'selected_algo': AlgorithmSerializer(user.selected_algo).data,
             'daily_emails': user.daily_emails
         })

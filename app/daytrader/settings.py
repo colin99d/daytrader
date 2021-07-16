@@ -51,6 +51,7 @@ THIRD_PARTY_APPS = [
     'rest_framework.authtoken',
     'rest_framework',
     'channels',
+    'django_rest_passwordreset',
 ]
 
 INSTALLED_APPS = DJANGO_DEFAULTS + MY_APPS + THIRD_PARTY_APPS
@@ -61,7 +62,7 @@ if DEBUG:
             'rest_framework.permissions.IsAuthenticated',
         ),
         'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',  # <-- And here
+        'rest_framework.authentication.TokenAuthentication',
     ],
     }
 else:

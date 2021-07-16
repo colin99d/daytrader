@@ -6,8 +6,9 @@ import Chat from './components/chat';
 import Login from './components/login';
 import Signup from './components/signup';
 import Error from './components/error';
+import PasswordReset from './components/passwordReset';
 
-type pageOpts = "home" | "algorithm" | "chat" | "login" | "signup"
+type pageOpts = "home" | "algorithm" | "chat" | "login" | "signup" | "passwordReset"
 type stock = {id: number, ticker: string};
 type algorithm = {
   id: number,
@@ -106,6 +107,7 @@ class App extends Component<{}, HomeState> {
   }
 
   handleClick (arg:pageOpts) {
+    console.log("Click")
     if ((arg == "home" || arg == "algorithm" || arg == "chat" ) && !this.state.loggedIn) {
       
     } else {
@@ -207,6 +209,8 @@ class App extends Component<{}, HomeState> {
       viewPage = <Login handleLogin={this.handleLogin} handleClick={this.handleClick} baseUrl={this.state.baseUrl} error={this.state.error}/>
     } else if (this.state.page == "signup" && !this.state.loggedIn) {
       viewPage = <Signup handleSignup={this.handleSignup} handleClick={this.handleClick}/>
+    } else if (this.state.page == "passwordReset" && !this.state.loggedIn){
+      viewPage = <PasswordReset handleClick={this.handleClick} baseUrl={this.state.baseUrl}/>
     } else {
       viewPage = <Error />
     }

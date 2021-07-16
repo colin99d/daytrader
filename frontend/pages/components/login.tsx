@@ -7,7 +7,7 @@ type LoginState = {
 
 type LoginProps = {
     handleLogin: (e: any, data:LoginState) => void,
-    handleClick: (arg: "signup") => void,
+    handleClick: (arg: "signup" | "passwordReset") => void,
     baseUrl: string
     error: string,
 }
@@ -48,7 +48,7 @@ class Login extends Component<LoginProps, LoginState> {
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 inline-block align-text-top">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
                     </svg>
-                    <span className="inline-block ml-1">Forgot Password</span>
+                    <a onClick={() => this.props.handleClick("passwordReset")} className="inline-block ml-1">Forgot Password</a>
                 </button>
               </div>
               <div className="text-center sm:text-right whitespace-nowrap">

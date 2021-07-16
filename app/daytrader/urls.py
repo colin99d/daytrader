@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.contrib import admin
 
 urlpatterns = [
+    path('api/password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     path('api-token-auth/', CustomAuthToken.as_view(), name='api_token_auth'),
     path('admin/', admin.site.urls),
     path('',include('trader.urls')),
