@@ -23,6 +23,6 @@ urlpatterns = [
     path('api-token-auth/', CustomAuthToken.as_view(), name='api_token_auth'),
     path('admin/', admin.site.urls),
     path('',include('trader.urls')),
-    path('user/', include('user.urls')),
+    path('user/', include('user.urls', namespace='user')),
     path('', include('chat.urls'))
 ]

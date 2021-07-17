@@ -63,7 +63,7 @@ class App extends Component<{}, HomeState> {
         decisions: null,
         algorithms: null,
         error: "",
-        baseUrl: 'http://192.168.1.72:1337',
+        baseUrl: 'http://127.0.01:8000',
         loggedIn: false,
         user: {
           username: '',

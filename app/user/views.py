@@ -6,7 +6,9 @@ from rest_framework import permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.shortcuts import render
 from trader.models import Algorithm
+from django.urls import reverse
 
 
 @api_view(['GET'])
@@ -65,3 +67,9 @@ class CustomAuthToken(ObtainAuthToken):
             'selected_algo': AlgorithmSerializer(user.selected_algo).data,
             'daily_emails': user.daily_emails
         })
+
+
+def change_password(request, token):
+    if request.method == "GET":
+        args = {"token":token}
+        return render(request, 'change_password.html',args)

@@ -17,5 +17,5 @@ class User(AbstractUser):
 
 @receiver(reset_password_token_created)
 def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
-    url = "{}?token={}".format(instance.request.build_absolute_uri(reverse('password_reset:reset-password-confirm')),reset_password_token.key)
+    url = instance.request.build_absolute_uri(reverse('user:change_password', kwargs={"token":reset_password_token.key}))
     send_mail("Password Reset for Daytrader",url,"cdelahun@iu.edu",[reset_password_token.user.email])

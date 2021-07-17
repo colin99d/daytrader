@@ -3,7 +3,7 @@ import React, { Component } from "react";
 type SignupState = {
     email: string,
     message: string,
-    error: string
+    response: [string, boolean]
 }
 
 type SignupProps = {
@@ -18,7 +18,7 @@ class PasswordReset extends Component<SignupProps, SignupState> {
         this.state = {
             email: '',
             message: '',
-            error: ''
+            response: ['',null]
         };
         this.handleChange = this.handleChange.bind(this);
         this.handleClick = this.handleClick.bind(this);
@@ -35,13 +35,16 @@ class PasswordReset extends Component<SignupProps, SignupState> {
             if (response.ok) {
               return response.json()
             } else {
-              this.setState({error: "Invalid password or username"})
+              this.setState({response: ["Email failed to send",false]})
               throw new Error('Invalid signup attempt');
             }
           })
-            .then(json => {
-              console.log(json)
-            });
+        .then(json => {
+          this.setState({response: ["Email succesfully sent", true]})
+        })
+        .catch((error) => {
+          this.setState({response: ["Email failed to send", false]})
+      });
     }
 
     handleChange(e:any) {this.setState({email: e.target.value})}
@@ -54,13 +57,14 @@ class PasswordReset extends Component<SignupProps, SignupState> {
         }
     }
 
-    
     render() {
+      let responseClass:string = this.state.response[1] ? "text-center text-green-500" : "text-center text-red-500"
       return (
         <div className="min-h-screen bg-gray-100 flex flex-col">
         <div className="p-10 xs:p-0 mx-auto md:w-full md:max-w-md">
           <h1 className="font-bold text-center text-2xl mb-3">Password Reset</h1>  
           <p className="text-center text-red-500">{this.state.message}</p>
+          <p className={responseClass}>{this.state.response[0]}</p>
           <div className="bg-white shadow w-full rounded-lg divide-y divide-gray-200">
             <div className="px-5 py-7">
 
@@ -71,23 +75,6 @@ class PasswordReset extends Component<SignupProps, SignupState> {
             </div>
               <div className="py-5">
               <div className="grid grid-cols-2 gap-1">
-                <div className="text-center sm:text-left whitespace-nowrap">
-                  <button className="transition duration-200 mx-5 px-5 py-4 cursor-pointer font-normal text-sm rounded-lg text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-200 focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 ring-inset">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 inline-block align-text-top">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                      </svg>
-                      <span className=""></span>
-                      
-                  </button>
-                </div>
-                <div className="text-center sm:text-right whitespace-nowrap">
-                  <button className="transition duration-200 mx-5 px-5 py-4 cursor-pointer font-normal text-sm rounded-lg text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-200 focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 ring-inset">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 inline-block align-text-bottom	">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-                      </svg>
-                      <span className="inline-block ml-1">Help</span>
-                  </button>
-                </div>
               </div>
             </div>
           </div>
