@@ -5,14 +5,12 @@ from django.dispatch import receiver
 from trader.models import Algorithm
 from django.urls import reverse
 from django.db import models
-import os
 
 
 class User(AbstractUser):
     selected_algo = models.ForeignKey(Algorithm, on_delete=models.CASCADE, blank=True, null=True)
     daily_emails = models.BooleanField(default=False)
     premium = models.BooleanField(default=False)
-
 
 
 @receiver(reset_password_token_created)

@@ -29,7 +29,7 @@ class Login extends Component<LoginProps, LoginState> {
   render() {
     return (
 
-      <div className="min-h-screen bg-gray-100 flex flex-col justify-center sm:py-12">
+      <div className="min-h-screen bg-gray-100 flex flex-col justify-center">
       <div className="p-10 xs:p-0 mx-auto md:w-full md:max-w-md">
         <h1 className="font-bold text-center text-2xl mb-5">Login</h1>  
         <p className="text-center text-red-500">{this.props.error}</p>
