@@ -33,7 +33,8 @@ class AlgoTestCase(TransactionTestCase):
         URL = 'https://finance.yahoo.com/quote/'+name
         page = requests.get(URL)
         soup = BeautifulSoup(page.content, 'html.parser')
-        item = soup.find(attrs={"data-reactid": "103"})
+        item = soup.find(attrs={"data-test": "OPEN-value"})
+        item = item.find("span")
         yahooOpen = float(item.text)
         self.assertEqual(round(self.pick.open_price,2), round(yahooOpen,2))
 

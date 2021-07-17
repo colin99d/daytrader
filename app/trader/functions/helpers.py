@@ -4,6 +4,7 @@ from django.template.loader import get_template
 from datetime import timedelta, time, date
 from django.core.mail import send_mail
 from .algos import z_score_analyzer
+from .scrapers import valid_ticker
 from django.utils import timezone
 from .scrapers import get_tickers
 from django.db.models import F, Q
@@ -107,7 +108,7 @@ def get_stock(algo, stocks):
     from trader.models import Stock, Decision
     last = last_date(timezone.now())[0]
     if not Decision.objects.filter(trade_date=last,algorithm=algo).exists():
-        symbols = [x.ticker for x in stocks]
+        symbols = [x.ticker for x in stocks if valid_ticker(x.ticker)]
         if len(symbols) > 0:
             data = get_data(symbols)
             ticker, open, conf, trade_date = z_score_analyzer(data, symbols)

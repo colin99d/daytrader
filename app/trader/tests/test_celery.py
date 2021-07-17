@@ -15,7 +15,10 @@ class CeleryFeaturesTestCase(TestCase):
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
     def test_begin_day(self):
         """Test that the begin_day celery function adds a decision to the model and sends an email to the user and chooses highest volume"""
-        User.objects.create_user('testUser','test@gmail.com','secure49password')
+        user = User.objects.create_user('testUser','test@gmail.com','secure49password')
+        setattr(user,"daily_emails",True)
+        setattr(user,"selected_algo",Algorithm.objects.create(name="Z-score daytrader",public=True))
+        user.save()
         s1 = Stock.objects.create(ticker = "TSLA", volume=10000,price=0,listed=True)
         s2 = Stock.objects.create(ticker = "AAPL", volume=2000,price=1000,listed=True)
         s3 = Stock.objects.create(ticker = "AMZN", volume=3000,price=83,listed=True)
@@ -36,7 +39,10 @@ class CeleryFeaturesTestCase(TestCase):
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
     def test_begin_day_lots_more(self):
         """Test that the begin_day celery function adds a decision to the model and sends an email to the user and doesn't choose a price over 100"""
-        User.objects.create_user('testUser','test@gmail.com','secure49password')
+        user = User.objects.create_user('testUser','test@gmail.com','secure49password')
+        setattr(user,"daily_emails",True)
+        setattr(user,"selected_algo",Algorithm.objects.create(name="Z-score daytrader",public=True))
+        user.save()
         s1 = Stock.objects.create(ticker = "TSLA", volume=1000,price=20,listed=True)
         s2 = Stock.objects.create(ticker = "AAPL", volume=2000,price=1000,listed=True)
         s3 = Stock.objects.create(ticker = "AMZN", volume=3000,price=83,listed=True)

@@ -74,7 +74,6 @@ def get_high_and_low():
     return serializers.serialize('json', Decision.objects.all())
 
 
-
 @app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
     #Decide which stocks to buy (using original algo) and send a mass mail every weekday at 9:32 am
