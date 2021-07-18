@@ -13,6 +13,7 @@ services:
     depends_on:
       - redis
       - postgres
+      - selenium
   postgres:
     image: postgres:12.0-alpine
     volumes:
@@ -53,6 +54,10 @@ services:
         - /usr/src/app/my-app/node_modules
   redis:
     image: redis:6-alpine
+  selenium:
+    image: selenium/standalone-chrome
+    ports:
+      - "5900:5900"
 
 volumes:
   postgres_data:
