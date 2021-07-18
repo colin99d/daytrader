@@ -6,8 +6,8 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./app/:/usr/src/app/
-    ports:
-      - 8000:8000
+    expose:
+      - 8000
     env_file:
       - ./.env.dev
     depends_on:
@@ -46,8 +46,6 @@ services:
     build: ./frontend 
     depends_on:
       - django
-    ports:
-      - 3000:3000
     stdin_open: true
     volumes:
         - ./frontend:/usr/src/app/my-app
@@ -58,6 +56,14 @@ services:
     image: selenium/standalone-chrome
     ports:
       - "5900:5900"
+  nginx:
+    build: ./nginx
+    volumes:
+      - static_volume:/home/app/web/staticfiles
+    ports:
+      - 1337:80
+    depends_on:
+      - django
 
 volumes:
   postgres_data:
