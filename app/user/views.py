@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import render
 from trader.models import Algorithm
-from django.urls import reverse
 
 
 @api_view(['GET'])

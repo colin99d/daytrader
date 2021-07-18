@@ -10,4 +10,11 @@ class TopicView(viewsets.ModelViewSet):
 
 class MessageView(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
-    queryset = Message.objects.all()
+
+    def get_queryset(self):
+        topicID = self.request.GET.get('topic', None)
+        if topicID:
+            topic = Topic.objects.get(pk=topicID)
+            return Message.objects.filter(topic=topic)
+        else:
+            return None

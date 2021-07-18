@@ -28,7 +28,7 @@ def daily_email(user):
     except ObjectDoesNotExist:
         stocks = None
 
-    d = { 'username': user.first_name, 'stock': stock, 'stocks': stocks, 'algorithm':user.selected_algo}
+    d = {'username': user.first_name, 'stock': stock, 'stocks': stocks, 'algorithm':user.selected_algo}
 
     text_content = text.render(d)
     html_content = html.render(d)
@@ -94,7 +94,7 @@ def get_opening():
             decision.save()
 
 def get_data(symbols):
-    data = yf.download(symbols, period = "1y",interval = '1d' )
+    data = yf.download(symbols, period = "1y",interval = '1d')
     for symbol in symbols:
         data['pHigh',symbol] = data['High',symbol].shift(1)
         data['pLow',symbol] = data['Low',symbol].shift(1)

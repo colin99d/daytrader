@@ -1,18 +1,27 @@
 import React, { Component } from "react";
 
+type formKeys = "roomName" | "message" | "search";
+
+type topic = {
+  id: number,
+  name: string,
+  created_at: Date,
+}
+
 type ForumProps = {
-    text: string,
-    changeRoom: (newRoom: string) => void,
+    item: topic,
+    changeRoom: (item: topic) => void,
+    getHighlighted: (text: string) => void,
   }
 
 class Forum extends Component<ForumProps, {}> {
 
     render() {
+      var text: any = this.props.getHighlighted(this.props.item.name)
       return (
-        <div className="flex flex-row py-4 px-2 items-center border-b-2" onClick={() => this.props.changeRoom(this.props.text)}>
+        <div className="flex flex-row py-4 px-2 items-center border-b-2" onClick={() => this.props.changeRoom(this.props.item)}>
           <div className="w-full">
-              <div className="text-lg font-semibold">{this.props.text}</div>
-              <span className="text-gray-500"></span>
+             {text}
           </div>
         </div>
   )
@@ -28,7 +37,8 @@ class Message extends Component<MessageProps, {}> {
 
     render() {
         let firstDiv = this.props.same ? "justify-end" : "justify-start"
-        let secondDiv = this.props.same ? "mr-2  bg-blue-400 rounded-bl-3xl rounded-tl-3xl rounded-tr-xl" : "ml-2 bg-gray-400 rounded-br-3xl rounded-tr-3xl rounded-tl-xl"
+        let secondDiv = this.props.same ? "mr-2  bg-blue-400 rounded-bl-3xl rounded-tl-3xl rounded-tr-xl" 
+        : "ml-2 bg-gray-400 rounded-br-3xl rounded-tr-3xl rounded-tl-xl"
       return (
         <div className={"flex mb-4 " + firstDiv}>
             <div className={"text-white py-3 px-4 " + secondDiv}>
@@ -37,12 +47,6 @@ class Message extends Component<MessageProps, {}> {
         </div>
   )
   }
-}
-
-type topic = {
-  id: number,
-  name: string,
-  created_at: Date,
 }
 
 type message = {
@@ -58,7 +62,8 @@ type ChatState = {
     messages: message[],
     topics: topic[],
     message: string,
-    error: string
+    error: string,
+    search: string
 }
 
 type ChatProps = {
@@ -76,29 +81,52 @@ class Chat extends Component<ChatProps, ChatState> {
             messages: [],
             topics: [],
             message: '',
-            error: ''
+            error: '',
+            search: ''
         };
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.changeRoom = this.changeRoom.bind(this);
+        this.getHighlighted = this.getHighlighted.bind(this);
       }
 
-    handleChange(e:any, formKey: "roomName" | "message") {this.setState({...this.state, [formKey]: e.target.value})}
+    handleChange(e: any, formKey: formKeys) {this.setState({...this.state, [formKey]: e.target.value})};
+
+    dynamicSearch() {
+      return this.state.topics.filter((item: topic) => item.name.toLowerCase().includes(this.state.search.toLowerCase()));
+    }
+
+    getHighlighted(text: string) {
+      var no_match: string = "text-lg font-semibold"
+      var match: string = "text-lg font-semibold bg-yellow-400"
+      if (this.state.search) {
+        const parts = text.split(new RegExp(`(${this.state.search})`, 'gi'));
+        return <span> { parts.map((part, i) => 
+            <span key={i} className={part.toLowerCase() === this.state.search.toLowerCase() ? match : no_match }>
+                { part }
+            </span>)
+        } </span>;
+      } else {
+        return  <span className={no_match}>{text}</span>
+      }
+  }
 
     chatSocket: any = ""
 
-    changeRoom(newRoom:string) {
-      if (newRoom != this.state.activeRoom) {
-        this.setState({activeRoom: newRoom})
+    changeRoom(item:topic) {
+      if (item.name != this.state.activeRoom) {
+        this.setState({activeRoom: item.name})
+        this.getFetch("/api/messages?topic="+item.id, "messages")
         if (this.chatSocket != "") {
           this.chatSocket.close()
         }
-        this.chatSocket = new WebSocket('ws://'+ this.props.baseUrl.replace("http://","")+ '/ws/chat/'+newRoom+'/'+"?token="+localStorage.getItem('token'));
+        this.chatSocket = new WebSocket('ws://'+ this.props.baseUrl.replace("http://","").replace("/backend","") + 
+        '/ws/chat/'+item.name+'/'+"?token="+localStorage.getItem('token'));
         this.chatSocket.onmessage = function(e) {
           
           const data = JSON.parse(e.data);
           const messages = this.state.messages;
-          messages.push({text:data.message,user:data.userId,topic:data.topic});
+          messages.push({text:data.message,user:data.user_id,topic:data.topic});
           this.setState({messages:messages})
           console.log(e.data)
           
@@ -107,7 +135,8 @@ class Chat extends Component<ChatProps, ChatState> {
       this.chatSocket.onclose = function(e) {
         let baseUrl = this.props.baseUrl;
         setTimeout(function() {
-          let chatSocket = new WebSocket('ws://'+ baseUrl.replace("http://","")+ '/ws/chat/'+newRoom+'/'+"?token="+localStorage.getItem('token'));
+          let chatSocket = new WebSocket('ws://'+ baseUrl.replace("http://","").replace("/backend","") + 
+          '/ws/chat/'+item.name+'/'+"?token="+localStorage.getItem('token'));
         }, 1000);
       }.bind(this)
 
@@ -151,7 +180,6 @@ class Chat extends Component<ChatProps, ChatState> {
 
     componentDidMount() {
       this.getFetch("/api/topics/", "topics")
-      this.getFetch("/api/messages/", "messages")
     }
 
     componentDidUpdate() {
@@ -163,16 +191,18 @@ class Chat extends Component<ChatProps, ChatState> {
       this.state.messages  ? this.state.messages.filter(item => item.topic.name == this.state.activeRoom).forEach((item, index) =>
         messages.push(<Message text={item.text} same={item.user==this.props.userId} key={index}/>)
       ) : null
+      var searchReturn = this.state.topics ? this.dynamicSearch() : null
       
       return (
         <div className="mx-auto shadow-lg rounded-lg mt-1 h-full">
             <div className="flex flex-row justify-between bg-white h-full">
             <div className="flex flex-col w-2/5 border-r-2 overflow-y-auto">
                 <div className="border-b-2 py-4 px-2">
-                <input value={this.state.roomName} onChange={(e) => {this.handleChange(e, "roomName")}} type="text" placeholder="search chatting" className="py-2 px-2 border-2 border-gray-200 rounded-2xl w-full"/>
+                <input value={this.state.search} onChange={(e) => {this.handleChange(e, "search")}} type="text" placeholder="Search topics" 
+                className="py-2 px-2 border-2 border-gray-200 rounded-2xl w-full"/>
                 </div>
-                {this.state.topics  ? this.state.topics.map(item =>
-                  <Forum text={item.name} key={item.id} changeRoom={this.changeRoom}/>
+                {searchReturn ? searchReturn.map(item =>
+                  <Forum item={item} key={item.id} changeRoom={this.changeRoom} getHighlighted={this.getHighlighted}/>
                 ) : null}
               
             </div>
@@ -182,8 +212,9 @@ class Chat extends Component<ChatProps, ChatState> {
                     <div className="messageContainer"></div>
                 </div>
                 <div className={"flex mb-4 " + (this.state.activeRoom ? "" : "hidden")}>
-                  <input value={this.state.message} onChange={(e) => {this.handleChange(e, "message")}} className="w-full bg-gray-300 py-5 px-3 rounded-xl  flex-1" type="text" id="messageValue"/>
-                  <button onClick={this.handleSubmit}className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
+                  <input value={this.state.message} onChange={(e) => {this.handleChange(e, "message")}} 
+                  className="w-full bg-gray-300 py-5 px-3 rounded-xl  flex-1" type="text" id="messageValue"/>
+                  <button onClick={this.handleSubmit} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
                 </div>
                 </div>
             </div>
