@@ -117,7 +117,7 @@ class APITests(APITestCase):
 class ViewTests(TestCase):
     def test_view_home(self):
         """Tests that home provides a basic repsonse"""
-        response = self.client.get('', follow=True)
+        response = self.client.get('/backend/', follow=True)
         self.assertTrue("This is the base URL for the daytrading API" in response.content.decode("utf-8"))
 
     def test_view_get_cashflows(self):

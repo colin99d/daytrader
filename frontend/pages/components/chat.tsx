@@ -56,10 +56,17 @@ type message = {
   user: number,
 }
 
+type messageResponse = {
+  count: number,
+  next: string,
+  previous: string,
+  results: message[],
+}
+
 type ChatState = {
     roomName: string,
     activeRoom: string,
-    messages: message[],
+    messageResponse: messageResponse,
     topics: topic[],
     message: string,
     error: string,
@@ -78,7 +85,7 @@ class Chat extends Component<ChatProps, ChatState> {
         this.state = {
             roomName: '',
             activeRoom: '',
-            messages: [],
+            messageResponse: null,
             topics: [],
             message: '',
             error: '',
@@ -86,6 +93,7 @@ class Chat extends Component<ChatProps, ChatState> {
         };
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleLoad = this.handleLoad.bind(this);
         this.changeRoom = this.changeRoom.bind(this);
         this.getHighlighted = this.getHighlighted.bind(this);
       }
@@ -95,6 +103,37 @@ class Chat extends Component<ChatProps, ChatState> {
     dynamicSearch() {
       return this.state.topics.filter((item: topic) => item.name.toLowerCase().includes(this.state.search.toLowerCase()));
     }
+
+  handleLoad() {
+
+    if (this.state.messageResponse.previous) {
+      var arrURL: string[] = this.state.messageResponse.previous.split("/backend");
+      var URL: string = arrURL[0]+":1337/backend"+arrURL[1];
+      fetch(URL,  {
+        headers: {Authorization: `Token ${localStorage.getItem('token')}`}
+      })
+      .then(response => {
+        if (response.status > 400) {
+          return this.setState(() => {
+            return { error: "Something went wrong!" };
+          });
+        }
+        return response.json();
+      })
+      .then((data:messageResponse) => {
+        var currentMess: messageResponse = this.state.messageResponse;
+        var newMess: messageResponse = {count: null, next: null, previous: null, results: []};
+        newMess.count = data.count;
+        newMess.next = data.next;
+        newMess.previous = data.previous;
+        newMess.results = data.results.concat(currentMess.results);
+        this.setState({messageResponse: newMess});
+      });
+    } else {
+      console.log("No more messages to load")
+      }
+    }
+  
 
     getHighlighted(text: string) {
       var no_match: string = "text-lg font-semibold"
@@ -116,7 +155,7 @@ class Chat extends Component<ChatProps, ChatState> {
     changeRoom(item:topic) {
       if (item.name != this.state.activeRoom) {
         this.setState({activeRoom: item.name})
-        this.getFetch("/api/messages?topic="+item.id, "messages")
+        this.getFetch("/api/messages?topic="+item.id+"&page=last", "messageResponse")
         if (this.chatSocket != "") {
           this.chatSocket.close()
         }
@@ -125,9 +164,9 @@ class Chat extends Component<ChatProps, ChatState> {
         this.chatSocket.onmessage = function(e) {
           
           const data = JSON.parse(e.data);
-          const messages = this.state.messages;
-          messages.push({text:data.message,user:data.user_id,topic:data.topic});
-          this.setState({messages:messages})
+          const messages = this.state.messageResponse;
+          messages.results.push({text:data.message,user:data.user_id,topic:data.topic});
+          this.setState({messageResponse:messages})
           console.log(e.data)
           
         }.bind(this)
@@ -162,21 +201,21 @@ class Chat extends Component<ChatProps, ChatState> {
     }
   }
 
-    getFetch(endpoint:string, state: "messages" | "topics") {
+  getFetch(endpoint:string, state: "messageResponse" | "topics") {
       fetch(this.props.baseUrl + endpoint,  {
         headers: {Authorization: `Token ${localStorage.getItem('token')}`}
       })
-        .then(response => {
-          if (response.status > 400) {
-            return this.setState(() => {
-              return { error: "Something went wrong!" };
-            });
-          }
-          return response.json();
-        })
-        .then((data: string[]) => this.setState({...this.state, [state]: data})
-        );
-    }
+      .then(response => {
+        if (response.status > 400) {
+          return this.setState(() => {
+            return { error: "Something went wrong!" };
+          });
+        }
+        return response.json();
+      })
+      .then((data: string[]) => this.setState({...this.state, [state]: data})
+      );
+  }
 
     componentDidMount() {
       this.getFetch("/api/topics/", "topics")
@@ -188,7 +227,7 @@ class Chat extends Component<ChatProps, ChatState> {
 
     render() {
       let messages = []
-      this.state.messages  ? this.state.messages.filter(item => item.topic.name == this.state.activeRoom).forEach((item, index) =>
+      this.state.messageResponse  ? this.state.messageResponse.results.forEach((item, index) =>
         messages.push(<Message text={item.text} same={item.user==this.props.userId} key={index}/>)
       ) : null
       var searchReturn = this.state.topics ? this.dynamicSearch() : null
@@ -208,6 +247,7 @@ class Chat extends Component<ChatProps, ChatState> {
             </div>
             <div className="w-full px-5 flex flex-col justify-between">
                 <div className="flex flex-col mt-5 overflow-scroll ">
+                  {this.state.activeRoom ? <p onClick={this.handleLoad} className="text-blue-500 underline text-center cursor-pointer">Load More Messages</p> : null}
                     {messages}
                     <div className="messageContainer"></div>
                 </div>
@@ -218,9 +258,9 @@ class Chat extends Component<ChatProps, ChatState> {
                 </div>
                 </div>
             </div>
-            </div>
-  )
-}
+          </div>
+    )
+  }
 }
 
 export default Chat;

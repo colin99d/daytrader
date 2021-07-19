@@ -1,6 +1,12 @@
 from .serializers import TopicSerializer, MessageSerializer
+from rest_framework.pagination import PageNumberPagination
 from rest_framework import viewsets
 from .models import Topic, Message
+
+class MessagePagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 10
 
 
 # Create your views here.
@@ -10,6 +16,7 @@ class TopicView(viewsets.ModelViewSet):
 
 class MessageView(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
+    pagination_class = MessagePagination
 
     def get_queryset(self):
         topicID = self.request.GET.get('topic', None)
