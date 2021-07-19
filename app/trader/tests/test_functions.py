@@ -47,7 +47,7 @@ class HelpersTestCase(TransactionTestCase):
         self.assertEqual(Stock.objects.filter(price__gt=0).count(),2)
         self.assertTrue(Stock.objects.get(ticker="NIO").price > 0)
         self.assertTrue(Stock.objects.get(ticker="IWV").price > 0)
-        self.assertTrue(Stock.objects.get(ticker="F").price == None)
+        self.assertTrue(Stock.objects.get(ticker="F").price is None)
         get_stock_data(Stock.objects.all(),3)
         self.assertEqual(Stock.objects.filter(price__gt=0).count(),2)
 
@@ -63,7 +63,7 @@ class HelpersTestCase(TransactionTestCase):
         Stock.objects.create(ticker="IWV", last_updated=timezone.now() - timedelta(days=15),listed=False)
         get_stock_data(Stock.objects.all(),2)
         self.assertTrue(Stock.objects.get(ticker="NIO").price > 0)
-        self.assertTrue(Stock.objects.get(ticker="IWV").price == None)
+        self.assertTrue(Stock.objects.get(ticker="IWV").price is None)
 
     def test_get_stock_data_correct_order(self):
         """Tests that the functions gets stock data when called, and gets the last stocks to be updated first"""
@@ -74,8 +74,8 @@ class HelpersTestCase(TransactionTestCase):
         get_stock_data(Stock.objects.all(),2)
         self.assertTrue(Stock.objects.get(ticker="T").price > 0)
         self.assertTrue(Stock.objects.get(ticker="NIO").price > 0)
-        self.assertTrue(Stock.objects.get(ticker="AAPL").price == None)
-        self.assertTrue(Stock.objects.get(ticker="IWV").price == None)
+        self.assertTrue(Stock.objects.get(ticker="AAPL").price is None)
+        self.assertTrue(Stock.objects.get(ticker="IWV").price is None)
 
     def test_get_stock_data_doesnt_run_listed_false(self):
         """Tests that the get_stock_data does not run stocks with a False listed attribute"""
@@ -83,7 +83,7 @@ class HelpersTestCase(TransactionTestCase):
         Stock.objects.create(ticker="IWV", last_updated=timezone.now() - timedelta(days=15),listed=True)
         Stock.objects.create(ticker="T", listed=False)
         get_stock_data(Stock.objects.all(),3)
-        self.assertTrue(Stock.objects.get(ticker="T").price == None)
+        self.assertTrue(Stock.objects.get(ticker="T").price is None)
         self.assertTrue(Stock.objects.get(ticker="IWV").price > 0)
         self.assertTrue(Stock.objects.get(ticker="NIO").price > 0)
 

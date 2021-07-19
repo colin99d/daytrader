@@ -13,6 +13,7 @@ Do the following to run the project:
 1. Run commands inside Docker
     - docker container ls
     - docker exec -it <container_id> <command>
+1. To open up the project in browser, go to 127.0.0.1:1337
 
 1. Run coverage report
     1. coverage run --source='.' manage.py test

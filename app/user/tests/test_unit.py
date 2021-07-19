@@ -10,7 +10,7 @@ class TestAuthentication(TestCase):
 
     def test_user_can_login(self):
         self.assertEqual(User.objects.count(), 1)
-        url = 'http://testserver/' + 'api-token-auth/'
+        url = 'http://testserver/' + 'backend/api-token-auth/'
         response = self.client.post(url, {"username":'test1',"password":'qwe123qwe'})
         cleaned = response.content.decode('utf8').replace("'", '"')
         self.assertTrue(cleaned.find("token") > -1)
@@ -20,7 +20,7 @@ class PasswordResetTestCase(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user('testUser','test@gmail.com','secure49password')
-        url = 'http://testserver/' + 'api/password_reset/'
+        url = 'http://testserver/' + 'backend/api/password_reset/'
         self.response = self.client.post(url, {"email":'test@gmail.com'})
         self.body = mail.outbox[0].body
 

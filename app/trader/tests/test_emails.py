@@ -28,7 +28,7 @@ class EmailTestCase(TransactionTestCase):
     def test_email_correct_algo(self):
         """Tests that an email chooses the correct algorithm to send"""
         algo1 = Algorithm.objects.create(name="Test the algo")
-        algo2 = Algorithm.objects.create(name="Test this algo also")
+        Algorithm.objects.create(name="Test this algo also")
         setattr(self.user,"selected_algo",algo1)
         self.user.save()
         daily_email(self.user)

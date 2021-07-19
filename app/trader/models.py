@@ -1,6 +1,5 @@
 from datetime import datetime, date, timedelta, time
 from django.utils import timezone
-from datetime import datetime
 from django.db import models
 import requests
 
@@ -48,10 +47,10 @@ class Stock(models.Model):
     def update_stock_info(self):
         ticker = self.ticker
         url = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/'+ ticker +'?modules=price'
-        headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36' }
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
         query = requests.get(url, headers=headers)
         try:
-            if self.listed == True or self.listed == None:
+            if self.listed or self.listed is None:
                 response = query.json()
                 clean = response["quoteSummary"]["result"][0]["price"]
                 last_updated = datetime.fromtimestamp(clean["regularMarketTime"])
@@ -71,16 +70,16 @@ class Stock(models.Model):
                 setattr(self,"active",False)
                 setattr(self,"listed",False)
         except KeyError:
-                setattr(self,"active",False)
-                setattr(self,"listed",False)
+            setattr(self,"active",False)
+            setattr(self,"listed",False)
         except ValueError:
-                setattr(self,"active",False)
-                setattr(self,"listed",False)
+            setattr(self,"active",False)
+            setattr(self,"listed",False)
         self.save()
 
     def get_cashflows(self, quarterly=False):
-        ending = "cashflowStatementHistory" if quarterly == False else "cashflowStatementHistoryQuarterly"
-        headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36' }
+        ending = "cashflowStatementHistoryQuarterly" if quarterly else "cashflowStatementHistory"
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
         url = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+ self.ticker.upper() +'?modules='+ending
         response = requests.get(url, headers=headers).json()
         try:

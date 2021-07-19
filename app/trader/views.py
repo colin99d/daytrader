@@ -22,7 +22,7 @@ class StockView(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         ticker = serializer.validated_data.get('ticker').upper()
-        if valid_ticker(ticker) == True:
+        if valid_ticker(ticker):
             response = serializer.data
             Stock.objects.create(ticker=ticker)
             sendStat = status.HTTP_201_CREATED 

@@ -51,5 +51,5 @@ class ModelMethodTestCase(TestCase):
         s2= Stock.objects.create(ticker="APXTU")
         s1.update_stock_info()
         s2.update_stock_info()
-        self.assertTrue(Stock.objects.get(ticker="AEGN").listed == False)
-        self.assertTrue(Stock.objects.get(ticker="APXTU").listed == False)
+        self.assertFalse(Stock.objects.get(ticker="AEGN").listed)
+        self.assertFalse(Stock.objects.get(ticker="APXTU").listed)

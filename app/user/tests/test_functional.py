@@ -1,5 +1,7 @@
+
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from django.contrib.staticfiles.testing import LiveServerTestCase
-from selenium.webdriver.firefox.webdriver import WebDriver
+from selenium import webdriver
 
 class FunctionalTestCase(LiveServerTestCase):
     port = 8001
@@ -7,7 +9,12 @@ class FunctionalTestCase(LiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.selenium = WebDriver()
+        opts = webdriver.ChromeOptions()
+        opts.add_argument('--no-sandbox')
+        opts.add_argument('--headless')
+        print('Starting')
+        cls.selenium = webdriver.Remote("http://selenium:4444/wd/hub", desired_capabilities=DesiredCapabilities.CHROME)
+        print(cls.selenium.get("https://python.org"))
         cls.selenium.implicitly_wait(10)
 
     @classmethod

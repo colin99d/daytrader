@@ -66,8 +66,8 @@ class ClosingTestCase(TransactionTestCase):
         currTime = timezone.now().time()
 
         holidays = [date(2021,7,5),date(2021,9,6),date(2021,12,24),date(2022,1,17),date(2022,2,21),date(2022,4,15),date(2022,5,30),date(2022,7,4),
-        date(2022,9,5),date(2022,12,26),date(2023,1,2),date(2023,1,16),date(2023,2,20),date(2023,4,7),date(2023,5,29),date(2023,7,4),
-        date(2023,9,4),date(2023,12,25)]
+                    date(2022,9,5),date(2022,12,26),date(2023,1,2),date(2023,1,16),date(2023,2,20),date(2023,4,7),date(2023,5,29),date(2023,7,4),
+                    date(2023,9,4),date(2023,12,25)]
         
         if weekday < 5 and currTime > time(9,30,0) and currTime < time(16,0,0) and timezone.now().date not in holidays:
             self.assertIsNone(self.pick.closing_price)
