@@ -10,7 +10,7 @@ import json
 
 tickers = ["TSLA", "AAPL", "AMZN", "GME", "F"]
 
-class CeleryFeaturesTestCase(TestCase):
+class CeleryTestCase(TestCase):
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
     def test_begin_day(self):
@@ -111,7 +111,7 @@ class CeleryFeaturesTestCase(TestCase):
         for item in stocks:
             self.assertTrue(item > 0)
 
-    
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,CELERY_ALWAYS_EAGER=True,BROKER_BACKEND='memory')
     def test_begin_day_gets_open_price(self):
         stock = Stock.objects.create(ticker="T", listed=True)
         for ticker in ["AAPL","GME","TSLA","CMAX","CANO"]:

@@ -1,5 +1,5 @@
 from trader.functions.scrapers import valid_ticker, get_highest_performing, get_lowest_performing
-from trader.functions.helpers import last_date, get_stock_data, get_highest_lowest, get_opening
+from trader.functions.helpers import last_date, get_stock_data, get_highest_lowest, get_opening, get_closing
 from trader.models import Stock, Decision, Algorithm
 from trader.templatetags.filter import growth
 from django.utils.timezone import make_aware
@@ -120,3 +120,32 @@ class HelpersTestCase(TransactionTestCase):
         Decision.objects.create(stock=stock, algorithm=algo, trade_date=make_aware(datetime(2021, 7, 7, 12, 0)), long=True)
         get_opening()
         self.assertTrue(Decision.objects.get(stock=stock).open_price > 0)
+
+    def test_get_open_price_skips_weekend(self):
+        stock = Stock.objects.create(ticker="T", listed=True)
+        algo = Algorithm.objects.create(name="Buy previous day's biggest gainer")
+        Decision.objects.create(stock=stock, algorithm=algo, trade_date=make_aware(datetime(2021, 7, 18, 12, 0)), long=True)
+        get_opening()
+        self.assertTrue(Decision.objects.get(stock=stock).open_price is None)
+
+    def test_get_close_price(self):
+        stock = Stock.objects.create(ticker="T", listed=True)
+        algo = Algorithm.objects.create(name="Buy previous day's biggest gainer")
+        Decision.objects.create(stock=stock, algorithm=algo, trade_date=make_aware(datetime(2021, 7, 7, 12, 0)), long=True)
+        get_closing()
+        self.assertTrue(Decision.objects.get(stock=stock).closing_price > 0)
+
+    def test_get_close_price_skips_weekend(self):
+        stock = Stock.objects.create(ticker="T", listed=True)
+        algo = Algorithm.objects.create(name="Buy previous day's biggest gainer")
+        Decision.objects.create(stock=stock, algorithm=algo, trade_date=make_aware(datetime(2021, 7, 18, 12, 0)), long=True)
+        get_closing()
+        self.assertTrue(Decision.objects.get(stock=stock).closing_price is None)
+
+    def test_last_date_never_returns_weekend(self):
+        days = [make_aware(datetime(2021, 7, x, 12, 0)) for x in [1,2,3,4,5,6,7,8,9,10]]
+        values = [last_date(x) for x in days]
+        last_date_values = [x[0].weekday() for x in values]
+        next_date_values = [x[2].weekday() for x in values]
+        self.assertFalse(5 in last_date_values or 6 in last_date_values)
+        self.assertFalse(5 in next_date_values or 6 in next_date_values)
