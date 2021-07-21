@@ -74,11 +74,14 @@ def get_closing():
         ticker = decision.stock.ticker
         tickDate = decision.trade_date
         if (timezone.now().date() > tickDate or timezone.now().time() > time(16,0,0)) and tickDate.weekday() < 5:
-            endDate = decision.trade_date + timedelta(days=1)
-            result = yf.Ticker(ticker).history(start=tickDate, end=endDate)
-            closing = result["Close"].iloc[0]
-            setattr(decision, "closing_price", closing)
-            decision.save()
+            try:
+                endDate = decision.trade_date + timedelta(days=1)
+                result = yf.Ticker(ticker).history(start=tickDate, end=endDate)
+                closing = result["Close"].iloc[0]
+                setattr(decision, "closing_price", closing)
+                decision.save()
+            except IndexError:
+                pass
 
 def get_opening():
     from trader.models import Decision
@@ -87,11 +90,14 @@ def get_opening():
         ticker = decision.stock.ticker
         tickDate = decision.trade_date
         if (timezone.now().date() > tickDate or timezone.now().time() > time(16,0,0)) and tickDate.weekday() < 5:
-            endDate = decision.trade_date + timedelta(days=1)
-            result = yf.Ticker(ticker).history(start=tickDate, end=endDate)
-            opening = result["Open"].iloc[0]
-            setattr(decision, "open_price", opening)
-            decision.save()
+            try:
+                endDate = decision.trade_date + timedelta(days=1)
+                result = yf.Ticker(ticker).history(start=tickDate, end=endDate)
+                opening = result["Open"].iloc[0]
+                setattr(decision, "open_price", opening)
+                decision.save()
+            except IndexError:
+                pass
 
 def get_data(symbols):
     data = yf.download(symbols, period = "1y",interval = '1d')
