@@ -73,7 +73,7 @@ def get_closing():
     for decision in decisions:
         ticker = decision.stock.ticker
         tickDate = decision.trade_date
-        if timezone.now().date() > tickDate or timezone.now().time() > time(16,0,0):
+        if (timezone.now().date() > tickDate or timezone.now().time() > time(16,0,0)) and tickDate.weekday() < 5:
             endDate = decision.trade_date + timedelta(days=1)
             result = yf.Ticker(ticker).history(start=tickDate, end=endDate)
             closing = result["Close"].iloc[0]
@@ -86,7 +86,7 @@ def get_opening():
     for decision in decisions:
         ticker = decision.stock.ticker
         tickDate = decision.trade_date
-        if timezone.now().date() > tickDate or timezone.now().time() > time(16,0,0):
+        if (timezone.now().date() > tickDate or timezone.now().time() > time(16,0,0)) and tickDate.weekday() < 5:
             endDate = decision.trade_date + timedelta(days=1)
             result = yf.Ticker(ticker).history(start=tickDate, end=endDate)
             opening = result["Open"].iloc[0]
