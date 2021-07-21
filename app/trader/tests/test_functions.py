@@ -1,5 +1,5 @@
+from trader.functions.helpers import last_date, get_stock_data, get_highest_lowest, get_opening, get_closing, get_data, get_stock
 from trader.functions.scrapers import valid_ticker, get_highest_performing, get_lowest_performing
-from trader.functions.helpers import last_date, get_stock_data, get_highest_lowest, get_opening, get_closing
 from trader.models import Stock, Decision, Algorithm
 from trader.templatetags.filter import growth
 from django.utils.timezone import make_aware
@@ -149,3 +149,17 @@ class HelpersTestCase(TransactionTestCase):
         next_date_values = [x[2].weekday() for x in values]
         self.assertFalse(5 in last_date_values or 6 in last_date_values)
         self.assertFalse(5 in next_date_values or 6 in next_date_values)
+
+    def test_get_data_filters_null(self):
+        symbols = ["AAPL","RKDA","TSLA","GXGX"]
+        data = get_data(symbols)
+        columns = set([x[1] for x in data.columns])
+        print(columns)
+        self.assertTrue("AAPL" in columns and "RKDA" in columns and "TSLA" in columns)
+        self.assertFalse("GXGX" in columns)
+
+    def test_get_stock_wont_enter_if_bad_data(self):
+        stock = Stock.objects.create(name="GXGX")
+        algo = Algorithm.objects.create(name="Test algo")
+        get_stock(algo, [stock])
+        self.assertEqual(Decision.objects.all().count(),0)

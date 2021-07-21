@@ -36,23 +36,19 @@ def get_tickers(exchange):
     return stocks 
 
 def get_highest_performing():
-    URL = 'https://www.tradingview.com/markets/stocks-usa/market-movers-gainers/'
+    URL = 'https://csimarket.com/markets/Stocks.php'
     page = requests.get(URL)
     soup = BeautifulSoup(page.content, 'html.parser')
-    table = soup.find('table', attrs={'class':'tv-data-table'})
-    body = table.find('tbody')
-    rows = body.find_all('tr')
-    cols = rows[0].find_all('td')
-    item = cols[0].find('a').text.strip()
-    return item
+    table = soup.find_all('table', attrs={'border':'0','cellpadding':'0'})[0]
+    row = table.find_all('tr', attrs={'class':'hov'})[0]
+    col = row.find_all('td', attrs={'class':'lk'})[0]
+    return col.find('a').get('href').split('=')[1]
 
 def get_lowest_performing():
-    URL = 'https://www.tradingview.com/markets/stocks-usa/market-movers-losers/'
+    URL = 'https://csimarket.com/markets/Stocks.php'
     page = requests.get(URL)
     soup = BeautifulSoup(page.content, 'html.parser')
-    table = soup.find('table', attrs={'class':'tv-data-table'})
-    body = table.find('tbody')
-    rows = body.find_all('tr')
-    cols = rows[0].find_all('td')
-    item = cols[0].find('a').text.strip()
-    return item
+    table = soup.find_all('table', attrs={'border':'0','cellpadding':'0'})[5]
+    row = table.find_all('tr', attrs={'class':'hov'})[0]
+    col = row.find_all('td', attrs={'class':'lk'})[0]
+    return col.find('a').get('href').split('=')[1]

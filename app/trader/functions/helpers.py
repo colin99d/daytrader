@@ -102,12 +102,15 @@ def get_opening():
 def get_data(symbols):
     data = yf.download(symbols, period = "1y",interval = '1d')
     for symbol in symbols:
-        data['pHigh',symbol] = data['High',symbol].shift(1)
-        data['pLow',symbol] = data['Low',symbol].shift(1)
-        data['pClose',symbol] = data['Close',symbol].shift(1)
-        data['pVolume',symbol] = data['Volume',symbol].shift(1)
-        data = data.iloc[1:]
-        data = data.fillna(0)
+        if data.xs(symbol, axis=1, level=1, drop_level=False).isna().sum().sum() > 0:
+            data = data.drop(symbol, axis=1, level=1)
+        else:
+            #print(data['High',symbol])
+            data['pHigh',symbol] = data['High',symbol].shift(1)
+            data['pLow',symbol] = data['Low',symbol].shift(1)
+            data['pClose',symbol] = data['Close',symbol].shift(1)
+            data['pVolume',symbol] = data['Volume',symbol].shift(1)
+            data = data.iloc[1:]
     return data
 
 def get_stock(algo, stocks):

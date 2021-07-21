@@ -71,7 +71,6 @@ class App extends Component<{}, HomeState> {
           selected_algo: null,
           daily_emails: null
         }
-        
     };
     this.handleClick = this.handleClick.bind(this);
     this.handleLogin = this.handleLogin.bind(this);
