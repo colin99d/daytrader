@@ -11,64 +11,19 @@ const theme={
     }
   }
 
-type data = {id: string, data:{x:string,y:number}[]}
-
-type HomeProps = {
-    stocks: {id: number, ticker: string}[],
-    baseUrl: string,
-    getFetch: (endpoint:string, state: "stocks" | "decisions") => void
-  }
-
-type HomeState = {
-    ticker: string,
-    error: string,
-    data: data[],
-    tickerDisplay: string
+type data =  {
+    id: string, 
+    data:{x:string,y:number}[]
 }
 
-class Home extends Component<HomeProps, HomeState> {
+type HomeProps = {
+    data: data[]
+  }
+
+class CashFlowGraph extends Component<HomeProps, {} >{
     constructor(props: any) {
         super(props);
-        this.state = {
-            ticker: "",
-            error: "",
-            data: null,
-            tickerDisplay: "",
-        };
-        this.handleChange = this.handleChange.bind(this);
-        this.handleClick = this.handleClick.bind(this);
-        this.handleErrors = this.handleErrors.bind(this);
       }
-    handleChange(e:any, formKey:"ticker") {this.setState({[formKey]: e.target.value})}
-
-    handleErrors(response: any): any {
-        if (!response.ok) {
-            this.setState({error:response.statusText});
-        }
-        return response;
-    }
-
-    postGeneric(endpoint:string, data: { [name: string]: string } | FormData): Promise<any>  {
-        return fetch(this.props.baseUrl + endpoint, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-          })
-          .then(this.handleErrors)
-          .then(response => response.json())
-    }
-
-    handleClick(): void {
-        let url = this.props.baseUrl + "/cashflows/";
-        let data  = new FormData();
-        data.append('ticker', this.state.ticker)
-        fetch(url, {method: 'post',body: data,})
-        .then(response => response.json())
-        .then(data => {this.setState({data: data, tickerDisplay: this.state.ticker, ticker:""})})
-    }
 
     formatNumber(value: number): string {
         if (value == 0) {
@@ -86,7 +41,7 @@ class Home extends Component<HomeProps, HomeState> {
 
     getTickerDates(): Date[] {
         var dates: Date[] = [];
-        this.state.data.forEach(item => {
+        this.props.data.forEach(item => {
             item["data"].forEach(subItem => {
                 dates.push(new Date(subItem["x"]));
             })
@@ -96,22 +51,11 @@ class Home extends Component<HomeProps, HomeState> {
 
     render() {
       return (
-        <div className="ml-3 w-screen flex h-full">
-            <div>
-            <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">Asset Manager</h1>
-            <form method="post" className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-                <p className="text-red-500">{this.state.error}</p>
-                <label className="block text-gray-700 text-sm font-bold mb-2"></label>
-                <input onChange={(e) => {this.handleChange(e, 'ticker')}} value={this.state.ticker} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" name="ticker" maxLength={5} />
-                <button onClick={() => {this.handleClick()}} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4" type='button'>Submit</button>
-            </form>
-                </div>
-            <div className="ml-5 h-3/4 w-full">
-            <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate text-center">{this.state.tickerDisplay.toUpperCase()}</h1>
-            {this.state.data ?<div className="w-full h-full bg-white">
+        <div className= "w-full h-full">
+            {this.props.data ?<div className="w-full h-full bg-white">
             <ResponsiveLine 
                 theme={theme}
-                data={this.state.data}
+                data={this.props.data}
                 margin={{ top: 50, right: 50, bottom: 100, left: 65 }}
                 xScale={{ format: "%m-%d-%Y", type: "time" }}
                 yScale={{ type: 'linear', stacked: false, min:"auto", max:"auto"}}
@@ -120,7 +64,7 @@ class Home extends Component<HomeProps, HomeState> {
                 curve="monotoneX"
                 axisTop={null}
                 axisBottom={{
-                    tickValues: this.getTickerDates(),
+                    tickValues: this.getTickerDates(), //custom formula
                     tickSize: 5,
                     tickPadding: 5,
                     tickRotation: 0,
@@ -132,7 +76,7 @@ class Home extends Component<HomeProps, HomeState> {
                     tickSize: 5,
                     tickPadding: 5,
                     tickRotation: 0,
-                    format: d => this.formatNumber(d),
+                    format: d => this.formatNumber(d),  //custom formula
                     legendOffset: -45,
                     legendPosition: 'middle'
                 }}
@@ -173,9 +117,8 @@ class Home extends Component<HomeProps, HomeState> {
                 ]}
             /></div> : null}
     </div>
-        </div>
   )
 }
 }
 
-export default Home;
+export default CashFlowGraph;

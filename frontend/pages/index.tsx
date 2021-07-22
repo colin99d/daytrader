@@ -1,12 +1,12 @@
 import React, { Component } from "react";
 import Header from './components/header';
-import AlgoTable from './components/algoTable';
-import Home from './components/home';
+import AlgoTable from './components/algo/algoTable';
+import Home from './components/home/home';
 import Chat from './components/chat';
-import Login from './components/login';
-import Signup from './components/signup';
+import Login from './components/auth/login';
+import Signup from './components/auth/signup';
 import Error from './components/error';
-import PasswordReset from './components/passwordReset';
+import PasswordReset from './components/auth/passwordReset';
 
 type pageOpts = "home" | "algorithm" | "chat" | "login" | "signup" | "passwordReset"
 type stock = {id: number, ticker: string};
@@ -106,7 +106,6 @@ class App extends Component<{}, HomeState> {
   }
 
   handleClick (arg:pageOpts) {
-    console.log("Click")
     if ((arg == "home" || arg == "algorithm" || arg == "chat" ) && !this.state.loggedIn) {
       
     } else {
@@ -134,7 +133,6 @@ class App extends Component<{}, HomeState> {
           this.setState({loggedIn: true, page: "home"})
         })
         .catch(error => {
-          console.log(error)
         })
     } else {
       this.setState({loggedIn: false})

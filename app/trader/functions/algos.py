@@ -64,7 +64,6 @@ def z_score_analyzer(data, symbols):
     df = pd.DataFrame({'ticker': symbols,'date': data.index[z],'open': opens,'decision': decisions,'close':closes})
     df_sorted = df.sort_values(by=['decision']).reset_index()
     long = df_sorted['ticker'][len(df_sorted)-1]
-    #longs = [df_sorted['date'][len(df_sorted)-1],df_sorted['ticker'][len(df_sorted)-1],df_sorted['open'][len(df_sorted)-1],df_sorted['decision'][len(df_sorted)-1],df_sorted['close'][len(df_sorted)-1]]
     pricel = df_sorted['open'][len(df_sorted)-1]
     decisionl = df_sorted['decision'][len(df_sorted)-1]
     return long, pricel, decisionl, data.index[z]

@@ -45,8 +45,7 @@ class Stock(models.Model):
         return self.ticker
 
     def update_stock_info(self):
-        ticker = self.ticker
-        url = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/'+ ticker +'?modules=price'
+        url = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/'+ self.ticker +'?modules=price'
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
         query = requests.get(url, headers=headers)
         try:
@@ -93,6 +92,23 @@ class Stock(models.Model):
             return dictVals
         except TypeError:
             return {"Error": "Ticker does not have an available statement of cash flows"}
+
+    def get_info(self):
+        url = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/'+ self.ticker +'?modules=price'
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
+        query = requests.get(url, headers=headers)
+        response = query.json()
+        try:
+            clean = response["quoteSummary"]["result"][0]["price"]
+            last_updated = datetime.fromtimestamp(clean["regularMarketTime"])
+            open_price = clean["regularMarketPrice"]["raw"]
+            volume = clean["regularMarketVolume"]["raw"]
+            return {"time":last_updated, "price":open_price, "volume":volume}
+        except TypeError:
+            return None
+
+    def get_options_chain(self):
+        pass
 
 class Algorithm(models.Model):
     name = models.CharField(max_length=100, unique=True)

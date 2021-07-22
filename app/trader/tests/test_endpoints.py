@@ -129,4 +129,4 @@ class ViewTests(TestCase):
         h200 = status.HTTP_200_OK
         h406 = status.HTTP_406_NOT_ACCEPTABLE
         self.assertEqual([x.status_code for x in responses], [h200, h200, h200, h200, h406])
-        self.assertIn("id", responses[1].json()[0].keys())
+        self.assertIn("id", responses[1].json()["cashflows"][0].keys())

@@ -2,6 +2,7 @@ from trader.models import Algorithm, Decision, Stock
 from trader.functions.helpers import last_date
 from django.utils import timezone
 from django.test import TestCase
+from datetime import datetime
 
 class ModelMethodTestCase(TestCase):
 
@@ -53,3 +54,12 @@ class ModelMethodTestCase(TestCase):
         s2.update_stock_info()
         self.assertFalse(Stock.objects.get(ticker="AEGN").listed)
         self.assertFalse(Stock.objects.get(ticker="APXTU").listed)
+
+    def test_get_info(self):
+        s1 = Stock.objects.create(ticker="CMAX")
+        s2= Stock.objects.create(ticker="ZZZZ")
+        responses = [x.get_info() for x in [s1, s2]]
+        self.assertTrue(isinstance(responses[0]["time"],datetime))
+        self.assertTrue(responses[0]["price"] > 0)
+        self.assertTrue(responses[0]["volume"] > 0)
+        self.assertEqual(responses[1], None)

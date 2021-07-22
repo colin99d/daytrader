@@ -159,15 +159,14 @@ class Chat extends Component<ChatProps, ChatState> {
         if (this.chatSocket != "") {
           this.chatSocket.close()
         }
-        this.chatSocket = new WebSocket('ws://'+ this.props.baseUrl.replace("http://","").replace("/backend","") + 
-        '/ws/chat/'+item.name+'/'+"?token="+localStorage.getItem('token'));
+        this.chatSocket = new WebSocket('ws://'+ window.location.host + '/ws/chat/'+item.name+'/'+"?token="+localStorage.getItem('token'));
+        
         this.chatSocket.onmessage = function(e) {
           
           const data = JSON.parse(e.data);
           const messages = this.state.messageResponse;
           messages.results.push({text:data.message,user:data.user_id,topic:data.topic});
           this.setState({messageResponse:messages})
-          console.log(e.data)
           
         }.bind(this)
 

@@ -59,12 +59,9 @@ class Header extends Component<HeaderProps, {}> {
             <img className="hidden sm:block h-8 w-auto" src="https://tailwindui.com/img/logos/workflow-logo-indigo-600-mark-gray-800-text.svg" alt="Workflow" />
           </div>
           <div className="sm:ml-6 sm:flex">
-       
             <a onClick={() => this.props.handleClick("home")} className={this.props.page == "home" ? "border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"}>Dashboard</a>
             <a onClick={() => this.props.handleClick("algorithm")} className={this.props.page == "algorithm" ? "border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"}>Algorithms</a>
-            <a onClick={() => this.props.handleClick("chat")} className={this.props.page == "chat" ? "border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"}>
-              Chat{' '} <span className="inline-flex items-center justify-center px-2 py-1 mr-2 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">Beta</span></a>
-            
+            <a onClick={() => this.props.handleClick("chat")} className={this.props.page == "chat" ? "border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"}>Chat</a>
           </div>
         </div>
           <div className="relative inline-block text-left dropdown align-middle mt-3">

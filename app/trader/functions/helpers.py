@@ -105,7 +105,6 @@ def get_data(symbols):
         if data.xs(symbol, axis=1, level=1, drop_level=False).isna().sum().sum() > 0:
             data = data.drop(symbol, axis=1, level=1)
         else:
-            #print(data['High',symbol])
             data['pHigh',symbol] = data['High',symbol].shift(1)
             data['pLow',symbol] = data['Low',symbol].shift(1)
             data['pClose',symbol] = data['Close',symbol].shift(1)
@@ -120,6 +119,7 @@ def get_stock(algo, stocks):
         symbols = [x.ticker for x in stocks if valid_ticker(x.ticker)]
         if len(symbols) > 0:
             data = get_data(symbols)
+            symbols = list(set([x[1] for x in data.columns]))
             ticker, open, conf, trade_date = z_score_analyzer(data, symbols)
             if trade_date == last:
                 stock = Stock.objects.get(ticker=ticker)

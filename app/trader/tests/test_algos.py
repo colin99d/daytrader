@@ -1,3 +1,4 @@
+from django.test.testcases import TestCase
 from trader.functions.helpers import get_closing, get_stock
 from trader.models import Stock, Algorithm, Decision
 from django.test import TransactionTestCase
@@ -48,6 +49,7 @@ class AlgoTestCase(TransactionTestCase):
         get_stock(algo, Stock.objects.all())
         self.assertEqual(Decision.objects.count(),1)
 
+
 class ClosingTestCase(TransactionTestCase):
 
     @classmethod
@@ -76,3 +78,16 @@ class ClosingTestCase(TransactionTestCase):
 
     def test_proper_closing_price(self):
         """Test that closing price matches Yahoo's closing price if market is closed"""
+
+
+class AdverseTestCase(TestCase):
+
+    def test_z_score_handles_removed_nulls(self):
+        Stock.objects.create(ticker="TSLA",listed=True)
+        Stock.objects.create(ticker="CMAX",listed=True)
+        Stock.objects.create(ticker="GXGX",listed=True)
+        Stock.objects.create(ticker="GME",listed=True)
+        algo = Algorithm.objects.create(name="The test algo",public=True)
+        get_stock(algo, Stock.objects.all())
+        d = Decision.objects.get(pk=1)
+        self.assertTrue(d.stock.ticker in ["TSLA", "GME"])

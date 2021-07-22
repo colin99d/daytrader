@@ -61,6 +61,7 @@ def cashflows(request):
         try:
             stock = Stock.objects.get(ticker=content)
             cashflows = stock.get_cashflows()
-            return JsonResponse(cashflows, safe=False)
+            info = stock.get_info()
+            return JsonResponse({"cashflows": cashflows, "info": info})
         except ObjectDoesNotExist:
             return HttpResponse(status=406)
