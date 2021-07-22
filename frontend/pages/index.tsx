@@ -201,7 +201,8 @@ class App extends Component<{}, HomeState> {
       viewPage = <Home stocks={this.state.stocks} baseUrl={this.state.baseUrl} getFetch={this.getFetch} />;
     } else if (this.state.page == "algorithm" && this.state.loggedIn) {
       viewPage = <AlgoTable algorithms={this.state.algorithms} decisions={this.state.decisions} 
-      baseUrl={this.state.baseUrl} algo={this.state.user ? this.state.user.selected_algo ? this.state.user.selected_algo.id : null : null} updateUser={this.updateUser}/>;
+      baseUrl={this.state.baseUrl} algo={this.state.user ? this.state.user.selected_algo ? this.state.user.selected_algo.id : null : null} 
+      updateUser={this.updateUser}/>;
     } else if (this.state.page == "chat" && this.state.loggedIn) {
       viewPage = <Chat baseUrl={this.state.baseUrl} userId={this.state.user.id}/>
     } else if (this.state.page == "login" && !this.state.loggedIn) {

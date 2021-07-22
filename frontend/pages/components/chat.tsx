@@ -222,7 +222,7 @@ class Chat extends Component<ChatProps, ChatState> {
     }
 
     componentDidUpdate() {
-      this.gotoBottom(".messageContainer")
+      //this.gotoBottom(".messageContainer")
     }
 
     render() {
@@ -231,6 +231,9 @@ class Chat extends Component<ChatProps, ChatState> {
         messages.push(<Message text={item.text} same={item.user==this.props.userId} key={index}/>)
       ) : null
       var searchReturn = this.state.topics ? this.dynamicSearch() : null
+      let next_item = this.state.messageResponse ? this.state.messageResponse.previous ? 
+        <p onClick={this.handleLoad} className="text-blue-500 underline text-center cursor-pointer">Load More Messages</p> : 
+          <p className="text-gray-500 text-center">All Messages Loaded</p> : null
       
       return (
         <div className="mx-auto shadow-lg rounded-lg mt-1 h-full">
@@ -247,7 +250,7 @@ class Chat extends Component<ChatProps, ChatState> {
             </div>
             <div className="w-full px-5 flex flex-col justify-between">
                 <div className="flex flex-col mt-5 overflow-scroll ">
-                  {this.state.activeRoom ? <p onClick={this.handleLoad} className="text-blue-500 underline text-center cursor-pointer">Load More Messages</p> : null}
+                  {this.state.activeRoom ? next_item : null}
                     {messages}
                     <div className="messageContainer"></div>
                 </div>

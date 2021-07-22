@@ -57,7 +57,7 @@ services:
     hostname: selenium
     privileged: true
     ports:
-      - "4444:4444"
+      - 4444:4444
     environment:
       - JAVA_OPTS=-Dwebdriver.chrome.whitelistedIps=
   nginx:
