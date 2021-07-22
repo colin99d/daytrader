@@ -49,6 +49,8 @@ services:
       dockerfile: Dockerfile.prod
     depends_on:
       - django
+    expose:
+      - 3000
   redis:
     image: redis:6-alpine
   nginx:
