@@ -58,11 +58,20 @@ def cashflows(request):
         form = StockForm(request.POST)
         form.is_valid()
         content = form.cleaned_data['ticker'].upper()
-        try:
-            stock = Stock.objects.get(ticker=content)
-            cashflows = stock.get_cashflows()
-            info = stock.get_info()
-            options = stock.get_options_chain()
-            return JsonResponse({"cashflows": cashflows, "info": info, "options": options})
-        except ObjectDoesNotExist:
-            return HttpResponse(status=406)
+        expiration = form.cleaned_data['expiration']
+        if expiration:
+            try:
+                stock = Stock.objects.get(ticker=content)
+                options = stock.get_options_chain(expiration)
+                return JsonResponse({"options": options})
+            except ObjectDoesNotExist:
+                return HttpResponse(status=406)
+        else:
+            try:
+                stock = Stock.objects.get(ticker=content)
+                cashflows = stock.get_cashflows()
+                info = stock.get_info()
+                options = stock.get_options_chain()
+                return JsonResponse({"cashflows": cashflows, "info": info, "options": options})
+            except ObjectDoesNotExist:
+                return HttpResponse(status=406)

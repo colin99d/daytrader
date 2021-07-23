@@ -107,8 +107,9 @@ class Stock(models.Model):
         except TypeError:
             return None
 
-    def get_options_chain(self):
-        url = 'https://query2.finance.yahoo.com/v7/finance/options/'+ self.ticker
+    def get_options_chain(self, expiration=""):
+        ending = "?date=" + str(expiration) if expiration else ""
+        url = 'https://query2.finance.yahoo.com/v7/finance/options/'+ self.ticker + ending
         query = requests.get(url, headers=headers)
         response = query.json()
         try:

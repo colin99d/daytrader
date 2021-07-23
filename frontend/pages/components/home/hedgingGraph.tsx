@@ -15,7 +15,8 @@ const theme={
     id: number,
     type: string,
     sign: number,
-    strike: number
+    strike: number,
+    cost: number,
 }
 
 type HomeProps = {
@@ -68,19 +69,27 @@ class HedgingGraph extends Component<HomeProps, {} >{
         })
       }
       var range: number = max - min;
-      console.log(range)
-      console.log(xList)
       return xList.map(item => min + ((item/100)*range));
     }
 
     generateData() {
         var xVals: number[] = this.getXValues();
         var base: number = this.props.data.price;
+        var totalCost: number = 0;
+        this.props.portfolio.forEach(item => {
+          totalCost += item.cost
+        })
         var beforeFees = [];
+        var afterFees = [];
         xVals.forEach(item => {
           beforeFees.push({"x" : item, "y": this.dataFunction(base, item)});
+          if (totalCost != 0) {
+            afterFees.push({"x" : item, "y": this.dataFunction(base, item) - totalCost});
+          }
         })
-        return [{id: "Before Fees", data: beforeFees},]
+        var returnDict = [{id: "Before Costs", data: beforeFees},]
+        if (totalCost != 0){returnDict.push({id: "After Costs", data: afterFees})}
+        return returnDict;
     }
 
     render() {

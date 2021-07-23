@@ -130,3 +130,12 @@ class ViewTests(TestCase):
         h406 = status.HTTP_406_NOT_ACCEPTABLE
         self.assertEqual([x.status_code for x in responses], [h200, h200, h200, h200, h406])
         self.assertIn("id", responses[1].json()["cashflows"][0].keys())
+
+    def test_view_get_cashflows_update(self):
+        """Ensures that the get_cashflow function response returns just cashflows if expiration"""
+        s1 = Stock.objects.create(ticker="TSLA")
+        response1 = s1.get_options_chain()
+        expiration = response1["expirations"][4]
+        response = self.client.post(reverse("cashflows"),{'ticker':"TSLA", 'expiration': expiration}, format="json")
+        json = response.json()
+        self.assertEqual(expiration, json["options"]["expiration"])

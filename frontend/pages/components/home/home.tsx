@@ -8,6 +8,7 @@ type portItem = {
     type: "stock" | "call" | "put",
     sign: -1 | 0 | 1,
     strike: number,
+    cost: number
 }
 
 type option = {
@@ -67,7 +68,7 @@ class Home extends Component<HomeProps, HomeState> {
             data: null,
             tickerDisplay: "",
             view: "hedging",
-            portfolio: [{id: 1, type: "stock", sign: 1, strike: null}],
+            portfolio: [{id: 1, type: "stock", sign: 1, strike: null, cost: 0}],
         };
         this.handleAdd = this.handleAdd.bind(this);
         this.handleChange = this.handleChange.bind(this);
@@ -85,13 +86,31 @@ class Home extends Component<HomeProps, HomeState> {
         else if (key=="type"){oldItem["type"]=value}
         else if (key=="strike"){oldItem["strike"]=value}
         //Refactor above
+        if (id > 1 && oldItem.sign != 0 ) {
+            var newCost: number = this.state.data.options[oldItem.type + "s"].find(item => item.strike == oldItem.strike).lastPrice
+            newCost *= oldItem.sign
+            oldItem.cost = newCost;
+        }
         var newPort = this.state.portfolio.filter(item => item.id != id);
         newPort.push(oldItem);
         this.setState({portfolio: newPort});
     }
 
     handleOptions(e: any) {
+        console.log("Start")
         var expDate: number = e.target.value;
+        let url = this.props.baseUrl + "/cashflows/";
+        let data  = new FormData();
+        data.append('ticker', this.state.tickerDisplay);
+        data.append('expiration', expDate.toString());
+        fetch(url, {method: 'post',body: data,})
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            var oldData = this.state.data;
+            oldData.options = data.options;
+            this.setState({data: oldData})
+        })
     }
 
     changeView(view: "hedging" | "cashflow") {this.setState({view: view})}
@@ -108,9 +127,15 @@ class Home extends Component<HomeProps, HomeState> {
             var ids: number[] = this.state.portfolio.map(item => item.id);
             var newId: number = Math.max(...ids) + 1;
             var portfolios = this.state.portfolio
-            portfolios.push({id: newId, type:"call", sign: 1, strike: this.state.data.options.calls[0].strike})
+            portfolios.push({id: newId, type:"call", sign: 1, strike: this.state.data.options.calls[0].strike, 
+                cost: this.state.data.options.calls[0].lastPrice})
             this.setState({portfolio: portfolios})
         } 
+    }
+
+    handleRemove(id: number) {
+        var newPort: portItem[] = this.state.portfolio.filter(item => item.id != id);
+        this.setState({portfolio: newPort});
     }
 
     unixToDate(unix: number | "") {
@@ -203,6 +228,9 @@ class Home extends Component<HomeProps, HomeState> {
                                 {item.type == "call" ? this.state.data.options.calls.map(item => <option value={item.strike}>${item.strike}</option>) :
                                 this.state.data.options.puts.map(item => <option value={item.strike}>${item.strike}</option>)}
                             </select>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-dash-circle-fill float-right text-red-500 cursor-pointer" viewBox="0 0 16 16">
+                                <path onClick={() => this.handleRemove(item.id)} d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM4.5 7.5a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1h-7z"/>
+                            </svg>
                         </li> 
                         )}
                     </div>

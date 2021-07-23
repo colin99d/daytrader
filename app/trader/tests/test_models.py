@@ -73,3 +73,10 @@ class ModelMethodTestCase(TestCase):
         self.assertTrue(len(responses[1]["calls"]) > 0)
         self.assertTrue(len(responses[1]["puts"]) > 0)
         self.assertTrue(int(responses[1]["expiration"]) > 0)
+
+    def test_get_options_chain_specific_expiration(self):
+        s1 = Stock.objects.create(ticker="TSLA")
+        response1 = s1.get_options_chain()
+        expiration = response1["expirations"][4]
+        response2 = s1.get_options_chain(expiration)
+        self.assertEqual(expiration,response2["expiration"])
