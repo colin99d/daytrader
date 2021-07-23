@@ -3,6 +3,8 @@ from django.utils import timezone
 from django.db import models
 import requests
 
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
+
 def last_date(dt):
     holidays = [date(2021,7,5),date(2021,9,6),date(2021,12,24),date(2022,1,17),date(2022,2,21),date(2022,4,15),date(2022,5,30),date(2022,7,4),
         date(2022,9,5),date(2022,12,26),date(2023,1,2),date(2023,1,16),date(2023,2,20),date(2023,4,7),date(2023,5,29),date(2023,7,4),
@@ -78,7 +80,6 @@ class Stock(models.Model):
 
     def get_cashflows(self, quarterly=False):
         ending = "cashflowStatementHistoryQuarterly" if quarterly else "cashflowStatementHistory"
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
         url = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/'+ self.ticker.upper() +'?modules='+ending
         response = requests.get(url, headers=headers).json()
         try:
@@ -95,7 +96,6 @@ class Stock(models.Model):
 
     def get_info(self):
         url = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/'+ self.ticker +'?modules=price'
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
         query = requests.get(url, headers=headers)
         response = query.json()
         try:
@@ -108,7 +108,22 @@ class Stock(models.Model):
             return None
 
     def get_options_chain(self):
-        pass
+        url = 'https://query2.finance.yahoo.com/v7/finance/options/'+ self.ticker
+        query = requests.get(url, headers=headers)
+        response = query.json()
+        try:
+            clean = response["optionChain"]["result"][0]
+            expirations = clean["expirationDates"]
+            if expirations == []:
+                return None
+            else:
+                options = clean["options"][0]
+                expiration = options["expirationDate"]
+                calls = options["calls"]
+                puts = options["puts"]
+                return {"expirations": expirations, "expiration": expiration, "calls": calls, "puts":puts}
+        except TypeError:
+            return None
 
 class Algorithm(models.Model):
     name = models.CharField(max_length=100, unique=True)

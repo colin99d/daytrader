@@ -154,7 +154,6 @@ class HelpersTestCase(TransactionTestCase):
         symbols = ["AAPL","RKDA","TSLA","GXGX"]
         data = get_data(symbols)
         columns = set([x[1] for x in data.columns])
-        print(columns)
         self.assertTrue("AAPL" in columns and "RKDA" in columns and "TSLA" in columns)
         self.assertFalse("GXGX" in columns)
 

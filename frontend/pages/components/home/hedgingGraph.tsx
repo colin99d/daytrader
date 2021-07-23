@@ -11,13 +11,20 @@ const theme={
     }
   }
 
+  type portItem = {
+    id: number,
+    type: string,
+    sign: number,
+    strike: number
+}
+
 type HomeProps = {
     data: {
         time: Date,
         price: number,
         volume: number
     }
-    portfolio: {id: number, type: string, sign: number,}[]
+    portfolio: portItem[]
   }
 
 class HedgingGraph extends Component<HomeProps, {} >{
@@ -25,27 +32,55 @@ class HedgingGraph extends Component<HomeProps, {} >{
         super(props);
       }
 
-    dataFunction(step: number) {
+    dataFunction(base: number, price: number) {
       var main = this.props.portfolio.find(item => item.id == 1);
-      console.log(main.sign);
-      return step * main.sign;
+      var optionsChange: number = 0;
+      var change: number = price - base;
+      this.props.portfolio.filter(item => item.id != 1).forEach(item => {
+        if (item.type == "call") {
+          let absChange: number = price > item.strike ? price - item.strike : 0;
+          optionsChange += item.sign * absChange;
+        } else if (item.type == "put") {
+          let absChange: number = price < item.strike ? item.strike - price : 0;
+          optionsChange += item.sign * absChange;
+        }
+      })
+      return  (change * main.sign) + optionsChange;
+    }
+
+    getXValues() {
+      var xList: number[] = Array.from(Array(101).keys())
+      var min: number = this.props.data.price;
+      var max: number = this.props.data.price;
+      if (this.props.portfolio.length == 1) {
+        min *= 0.5;
+        max *= 1.5;
+      } else if (this.props.portfolio.length > 1) {
+        this.props.portfolio.forEach(item => {
+          if (item.strike > max) {
+            max = item.strike;
+          }
+          if (item.strike < min) {
+            min = item.strike;
+          }
+          min *= 0.8;
+          max *= 1.2;
+        })
+      }
+      var range: number = max - min;
+      console.log(range)
+      console.log(xList)
+      return xList.map(item => min + ((item/100)*range));
     }
 
     generateData() {
+        var xVals: number[] = this.getXValues();
         var base: number = this.props.data.price;
-        var looper = Array.from(Array(25).keys())
         var beforeFees = [];
-        var breakEven = [];
-        looper.forEach((item, idx) => {
-          var step: number = 0.02;
-          var nextX: number = base * idx * step
-          var change: number = base * idx * this.dataFunction(step);
-          beforeFees.push({"x" : base + nextX, "y": base + change});
-          beforeFees.push({"x" : base - nextX, "y": base - change});
-          breakEven.push({"x" : base + nextX, "y": base});
-          breakEven.push({"x" : base - nextX, "y": base});
+        xVals.forEach(item => {
+          beforeFees.push({"x" : item, "y": this.dataFunction(base, item)});
         })
-        return [{id: "Before Fees", data: beforeFees},{id: "Break Even", color: "hsl(27, 0%, 85%)", data: breakEven}]
+        return [{id: "Before Fees", data: beforeFees},]
     }
 
     render() {
@@ -56,11 +91,11 @@ class HedgingGraph extends Component<HomeProps, {} >{
             <ResponsiveLine 
                 theme={theme}
                 data={values}
-                margin={{ top: 50, right: 50, bottom: 100, left: 65 }}
+                margin={{ top: 50, right: 50, bottom: 100, left: 80 }}
                 xScale={{ type: 'linear', stacked: false, min:"auto", max:"auto"}}
                 yScale={{ type: 'linear', stacked: false, min:"auto", max:"auto"}}
-                xFormat=">-$r"
-                yFormat=">-$r"
+                xFormat=">-$.3f"
+                yFormat=">-$.3f"
                 curve="linear"
                 axisTop={null}
                 axisBottom={{
@@ -68,7 +103,7 @@ class HedgingGraph extends Component<HomeProps, {} >{
                     tickSize: 5,
                     tickPadding: 5,
                     tickRotation: 0,
-                    //format: "%m-%d-%Y",
+                    format: ">-$.2f",
                     legendOffset: 36,
                     legendPosition: "middle"
                 }}
@@ -76,7 +111,7 @@ class HedgingGraph extends Component<HomeProps, {} >{
                     tickSize: 5,
                     tickPadding: 5,
                     tickRotation: 0,
-                    //format: d => this.formatNumber(d),  //custom formula
+                    format: ">-$.2f",
                     legendOffset: -45,
                     legendPosition: 'middle'
                 }}

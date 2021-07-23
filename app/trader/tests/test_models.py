@@ -63,3 +63,13 @@ class ModelMethodTestCase(TestCase):
         self.assertTrue(responses[0]["price"] > 0)
         self.assertTrue(responses[0]["volume"] > 0)
         self.assertEqual(responses[1], None)
+
+    def test_get_options_chain(self):
+        s1 = Stock.objects.create(ticker="CMAX")
+        s2 = Stock.objects.create(ticker="TSLA")
+        responses = [x.get_options_chain() for x in [s1,s2]]
+        self.assertIsNone(responses[0])
+        self.assertTrue(len(responses[1]["expirations"]) > 0)
+        self.assertTrue(len(responses[1]["calls"]) > 0)
+        self.assertTrue(len(responses[1]["puts"]) > 0)
+        self.assertTrue(int(responses[1]["expiration"]) > 0)
