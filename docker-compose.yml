@@ -46,6 +46,8 @@ services:
     build: ./frontend 
     depends_on:
       - django
+    expose:
+      - 3000
     stdin_open: true
     volumes:
         - ./frontend:/usr/src/app/my-app

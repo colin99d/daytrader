@@ -11,12 +11,12 @@ const theme={
     }
   }
 
-  type portItem = {
-    id: number,
-    type: string,
-    sign: number,
-    strike: number,
-    cost: number,
+type portItem = {
+  id: number,
+  type: "stock" | "call" | "put",
+  sign: -1 | 0 | 1,
+  strike: number,
+  cost: number
 }
 
 type HomeProps = {
